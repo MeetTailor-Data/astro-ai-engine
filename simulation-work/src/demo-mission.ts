@@ -1,11 +1,7 @@
 import { SimulationEngine } from "./engine.js";
 import { MissionRunner } from "./mission-runner.js";
 import { evaluateObjectives } from "./objective-evaluator.js";
-import {
-  calculateFinalMissionScore,
-  calculateMissionScore,
-} from "./scoring.js";
-import type { SimulationConfig } from "./engine.js";
+import { calculateFinalMissionScore} from "./scoring.js";
 import { getMissionProfile } from "./mission-profiles.js";
 
 const profile = getMissionProfile("deep-space");
