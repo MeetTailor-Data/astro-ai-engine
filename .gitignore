@@ -68,3 +68,17 @@ wandb/
 runs/
 lightning_logs/
 *.log
+
+# Node.js / TypeScript
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Test and temporary files
+.nyc_output/
