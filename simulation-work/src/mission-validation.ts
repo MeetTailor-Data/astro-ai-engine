@@ -1,5 +1,6 @@
 
 import type { SimulationConfig } from "./engine.js";
+import { SimulationEngine } from "./engine.js";
 
 export interface MissionObjective {
   id: string;
@@ -22,6 +23,16 @@ export function validateMission(
 
   if (!config || typeof config !== "object") {
     return { valid: false, errors: ["Invalid mission configuration"] };
+  }
+  
+  try {
+    new SimulationEngine(config);
+  } catch (error) {
+    errors.push(
+      error instanceof Error
+        ? error.message
+        : "Invalid simulation configuration"
+    );
   }
 
   if (!Array.isArray(objectives) || objectives.length === 0) {
