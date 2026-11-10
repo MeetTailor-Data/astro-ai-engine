@@ -58,4 +58,16 @@ describe("Mission Validation", () => {
 
     expect(result.valid).toBe(false);
   });
+
+  it("rejects invalid simulation configuration", () => {
+  const result = validateMission(
+    { ...config, altitudeKm: -500 },
+    objectives
+  );
+
+  expect(result.valid).toBe(false);
+  expect(result.errors).toContain(
+    "Altitude must be finite and non-negative"
+  );
+});
 });
