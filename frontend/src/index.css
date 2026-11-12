@@ -1,0 +1,189 @@
+@import "tailwindcss";
+
+@theme {
+  --color-space-bg: #050811;
+  --color-panel-bg: #0a1122;
+  --color-telemetry-cyan: #00f0ff;
+  --color-launch-orange: #ff6b1a;
+  --color-alert-amber: #f59e0b;
+  --color-nominal-green: #10b981;
+  --font-sans: "Rajdhani", system-ui, -apple-system, sans-serif;
+  --font-display: "Orbitron", "Rajdhani", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    background-color: #050811;
+    color: #e2e8f0;
+    font-family: var(--font-sans);
+    user-select: none;
+  }
+
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: var(--font-display);
+  }
+}
+
+.telemetry-num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Chamfered Sci-Fi Game HUD Clip Paths */
+.hud-chamfer {
+  clip-path: polygon(
+    0 0,
+    calc(100% - 18px) 0,
+    100% 18px,
+    100% 100%,
+    18px 100%,
+    0 calc(100% - 18px)
+  );
+}
+
+.hud-chamfer-sm {
+  clip-path: polygon(
+    0 0,
+    calc(100% - 10px) 0,
+    100% 10px,
+    100% 100%,
+    10px 100%,
+    0 calc(100% - 10px)
+  );
+}
+
+/* Outer metallic border wrapper using clip-path + 1px padding */
+.hud-shell {
+  clip-path: polygon(
+    0 0,
+    calc(100% - 18px) 0,
+    100% 18px,
+    100% 100%,
+    18px 100%,
+    0 calc(100% - 18px)
+  );
+  background: linear-gradient(
+    135deg,
+    rgba(0, 240, 255, 0.55) 0%,
+    rgba(56, 189, 248, 0.22) 45%,
+    rgba(255, 107, 26, 0.45) 100%
+  );
+  padding: 1.5px;
+}
+
+.hud-shell-amber {
+  clip-path: polygon(
+    0 0,
+    calc(100% - 18px) 0,
+    100% 18px,
+    100% 100%,
+    18px 100%,
+    0 calc(100% - 18px)
+  );
+  background: linear-gradient(
+    135deg,
+    rgba(255, 107, 26, 0.85) 0%,
+    rgba(245, 158, 11, 0.35) 50%,
+    rgba(0, 240, 255, 0.45) 100%
+  );
+  padding: 1.5px;
+}
+
+.hud-inner {
+  clip-path: polygon(
+    0 0,
+    calc(100% - 17px) 0,
+    100% 17px,
+    100% 100%,
+    17px 100%,
+    0 calc(100% - 17px)
+  );
+  background: linear-gradient(175deg, rgba(10, 17, 34, 0.92) 0%, rgba(5, 9, 20, 0.95) 100%);
+  backdrop-filter: blur(10px);
+}
+
+/* Subtle CRT / tactical HUD scanlines */
+.hud-scanlines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 240, 255, 0.03) 0px,
+    rgba(0, 240, 255, 0.03) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+}
+
+/* Slanted Tactical Game Button */
+.game-btn-slanted {
+  clip-path: polygon(
+    14px 0,
+    100% 0,
+    calc(100% - 14px) 100%,
+    0 100%
+  );
+  transition: transform 140ms ease, filter 160ms ease, box-shadow 160ms ease;
+}
+
+.game-btn-slanted:hover:not(:disabled) {
+  transform: translateY(-1px) scale(1.015);
+  filter: brightness(1.1);
+}
+
+.game-btn-slanted:active:not(:disabled) {
+  transform: translateY(1px) scale(0.99);
+}
+
+@keyframes thrusterPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 18px rgba(255, 107, 26, 0.55), 0 0 42px rgba(255, 107, 26, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 28px rgba(255, 107, 26, 0.85), 0 0 60px rgba(255, 140, 40, 0.45);
+  }
+}
+
+.thruster-glow {
+  animation: thrusterPulse 2.1s ease-in-out infinite;
+}
+
+@keyframes reticleSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.reticle-spin {
+  animation: reticleSpin 18s linear infinite;
+}
+
+/* Internal slim HUD scrollbar (for small laptop viewports inside drawers only) */
+.hud-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.hud-scroll::-webkit-scrollbar-track {
+  background: rgba(5, 8, 17, 0.6);
+}
+
+.hud-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 240, 255, 0.35);
+}
+
+.hud-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 240, 255, 0.65);
+}
