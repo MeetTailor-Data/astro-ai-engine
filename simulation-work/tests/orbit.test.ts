@@ -1,8 +1,39 @@
 import { describe, it, expect } from "vitest";
 import { calculateOrbit } from "../src/orbit.js";
 import { calculateCircularVelocity } from "../src/orbit.js";
+import { calculateOrbitalState } from "../src/orbit.js";
 
 describe("Orbit Calculator", () => {
+  it("calculates a circular orbit correctly", () => {
+    const velocity = calculateCircularVelocity(400);
+
+    const state = calculateOrbitalState(400, velocity);
+
+    expect(state.escaped).toBe(false);
+    expect(state.eccentricity).toBeCloseTo(0, 5);
+    expect(state.perigeeAltitudeKm).toBeCloseTo(400, 3);
+    expect(state.apogeeAltitudeKm).toBeCloseTo(400, 3);
+  });
+
+  it("calculates higher apogee after a prograde velocity increase", () => {
+    const velocity = calculateCircularVelocity(400);
+
+    const state = calculateOrbitalState(400, velocity + 100);
+
+    expect(state.escaped).toBe(false);
+    expect(state.apogeeAltitudeKm!).toBeGreaterThan(400);
+    expect(state.perigeeAltitudeKm!).toBeLessThan(400);
+  });
+
+  it("detects escape velocity", () => {
+    const velocity = calculateCircularVelocity(400);
+
+    const state = calculateOrbitalState(400, velocity * 2);
+
+    expect(state.escaped).toBe(true);
+    expect(state.apogeeAltitudeKm).toBeNull();
+  });
+
   it("calculates circular velocity for 400 km orbit", () => {
     const velocity = calculateCircularVelocity(400);
     expect(velocity).toBeCloseTo(7672.6, 1);
