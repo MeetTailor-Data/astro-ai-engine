@@ -105,6 +105,7 @@ describe("Simulation Engine", () => {
       },
     });
 
+    const initialVelocity = engine.step().orbitalVelocityMs;
     const result = engine.burn(10);
 
     expect(result.consumedPropellantKg).toBeGreaterThan(0);
@@ -121,6 +122,107 @@ describe("Simulation Engine", () => {
     );
 
     expect(telemetry.cumulativeDeltaVMS).toBeGreaterThan(0);
+    expect(telemetry.orbitalVelocityMs).toBeGreaterThan(initialVelocity);
+    expect(telemetry.orbitalState.velocityMs).toBe(
+      telemetry.orbitalVelocityMs,
+    );
+  });
+
+  it("reduces orbital velocity after a retrograde burn", () => {
+    const engine = new SimulationEngine({
+      ...config,
+      propulsion: {
+        thrustN: 1000,
+        ispSeconds: 300,
+        dryMassKg: 500,
+        initialPropellantKg: 100,
+      },
+    });
+
+    const initialVelocity = engine.step().orbitalVelocityMs;
+    engine.burn(10, "RETROGRADE");
+
+    const telemetry = engine.step();
+
+    expect(telemetry.orbitalVelocityMs).toBeLessThan(initialVelocity);
+    expect(telemetry.orbitalVelocityMs).toBeGreaterThan(0);
+    expect(telemetry.orbitalState.velocityMs).toBe(
+      telemetry.orbitalVelocityMs,
+    );
+  });
+
+  it("increases orbital velocity after prograde burn", () => {
+    const engine = new SimulationEngine({
+      ...config,
+      propulsion: {
+        thrustN: 1000,
+        ispSeconds: 300,
+        dryMassKg: 500,
+        initialPropellantKg: 100,
+      },
+    });
+
+    const initialVelocity = engine.step().orbitalVelocityMs;
+
+    engine.burn(10, "PROGRADE");
+
+    const telemetry = engine.step();
+
+    expect(telemetry.orbitalVelocityMs).toBeGreaterThan(initialVelocity);
+    expect(telemetry.orbitalState.apogeeAltitudeKm!).toBeGreaterThan(
+      config.altitudeKm,
+    );
+  });
+
+  it("decreases orbital velocity after retrograde burn", () => {
+    const engine = new SimulationEngine({
+      ...config,
+      propulsion: {
+        thrustN: 1000,
+        ispSeconds: 300,
+        dryMassKg: 500,
+        initialPropellantKg: 100,
+      },
+    });
+
+    const initialVelocity = engine.step().orbitalVelocityMs;
+
+    engine.burn(10, "RETROGRADE");
+
+    const telemetry = engine.step();
+
+    expect(telemetry.orbitalVelocityMs).toBeLessThan(initialVelocity);
+    expect(telemetry.orbitalState.perigeeAltitudeKm!).toBeLessThan(
+      config.altitudeKm,
+    );
+  });
+
+  it("does not consume propellant when a retrograde burn exceeds orbital velocity", () => {
+    const engine = new SimulationEngine({
+      ...config,
+      propulsion: {
+        thrustN: 1_000_000_000,
+        ispSeconds: 300,
+        dryMassKg: 500,
+        initialPropellantKg: 10_000,
+      },
+    });
+
+    const initialTelemetry = engine.step();
+
+    expect(() => engine.burn(1000, "RETROGRADE")).toThrow(
+      "Retrograde burn exceeds current orbital velocity",
+    );
+
+    const telemetry = engine.step();
+
+    expect(telemetry.fuelRemainingKg).toBe(
+      initialTelemetry.fuelRemainingKg,
+    );
+    expect(telemetry.cumulativeDeltaVMS).toBe(0);
+    expect(telemetry.orbitalVelocityMs).toBe(
+      initialTelemetry.orbitalVelocityMs,
+    );
   });
 
   it("returns latest telemetry", () => {

@@ -1,4 +1,9 @@
-import { calculateOrbit } from "./orbit.js";
+import {
+  calculateOrbit,
+  calculateCircularVelocity,
+  calculateOrbitalState,
+  type OrbitalState,
+} from "./orbit.js";
 import { calculatePower } from "./power.js";
 import { calculateBattery } from "./battery.js";
 import { calculateCommunications } from "./communications.js";
@@ -6,6 +11,7 @@ import { EventScheduler } from "./events.js";
 import { TelemetryStore } from "./telemetry.js";
 import { calculatePropulsion } from "./propulsion.js";
 
+export type BurnDirection = "PROGRADE" | "RETROGRADE";
 export interface PropulsionConfig {
   thrustN: number;
   ispSeconds: number;
@@ -37,6 +43,8 @@ export interface SimulationConfig {
 }
 
 export interface Telemetry {
+  orbitalVelocityMs: number;
+  orbitalState: OrbitalState;
   simulationTimeSeconds: number;
   orbitalPhase: number;
   inEclipse: boolean;
@@ -137,6 +145,8 @@ function validateConfig(config: SimulationConfig): void {
 }
 
 export class SimulationEngine {
+  private orbitalVelocityMs: number;
+  private orbitalState: OrbitalState;
   private readonly config: SimulationConfig;
   private readonly scheduler = new EventScheduler();
   private readonly telemetry = new TelemetryStore();
@@ -158,6 +168,11 @@ export class SimulationEngine {
     this.batteryEnergyWh = config.initialBatteryEnergyWh;
     this.dataBufferGB = config.initialBufferGB;
     this.fuelRemainingKg = config.propulsion?.initialPropellantKg ?? 0;
+    this.orbitalVelocityMs = calculateCircularVelocity(config.altitudeKm);
+    this.orbitalState = calculateOrbitalState(
+      config.altitudeKm,
+      this.orbitalVelocityMs,
+    );
   }
 
   get eventScheduler(): EventScheduler {
@@ -217,6 +232,8 @@ export class SimulationEngine {
     this.dataBufferGB = communications.remainingBufferGB;
 
     const telemetry: Telemetry = {
+      orbitalVelocityMs: this.orbitalVelocityMs,
+      orbitalState: this.orbitalState,
       simulationTimeSeconds: nextTime,
       orbitalPhase: orbit.currentPhase,
       inEclipse: orbit.inEclipse,
@@ -248,7 +265,10 @@ export class SimulationEngine {
     return telemetry;
   }
 
-  burn(durationSeconds: number) {
+  burn(
+    durationSeconds: number,
+    direction: BurnDirection = "PROGRADE",
+  ) {
     const propulsion = this.config.propulsion;
 
     if (!propulsion) {
@@ -271,9 +291,26 @@ export class SimulationEngine {
       initialPropellantKg: this.fuelRemainingKg,
     });
 
+    const signedDeltaV =
+      direction === "PROGRADE" ? result.deltaVMS : -result.deltaVMS;
+    const newVelocity = this.orbitalVelocityMs + signedDeltaV;
+
+    if (newVelocity < 0) {
+      throw new Error(
+        "Retrograde burn exceeds current orbital velocity",
+      );
+    }
+
+    const newOrbitalState = calculateOrbitalState(
+      this.config.altitudeKm,
+      newVelocity,
+    );
+
     this.fuelRemainingKg = result.remainingPropellantKg;
     this.cumulativeDeltaVMS += result.deltaVMS;
     this.engineBurning = result.consumedPropellantKg > 0;
+    this.orbitalVelocityMs = newVelocity;
+    this.orbitalState = newOrbitalState;
 
     return result;
   }
