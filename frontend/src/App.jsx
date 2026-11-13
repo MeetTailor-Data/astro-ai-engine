@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import CommandCenter from './components/CommandCenter';
+import ErrorBoundary from './components/ErrorBoundary';
 import LaunchControl from './components/LaunchControl';
 import MissionOutcome from './components/MissionOutcome';
 import MissionSelect from './components/MissionSelect';
@@ -108,8 +109,10 @@ function MissionControlRouter() {
 
 export default function App() {
   return (
-    <MissionProvider>
-      <MissionControlRouter />
-    </MissionProvider>
+    <ErrorBoundary>
+      <MissionProvider>
+        <MissionControlRouter />
+      </MissionProvider>
+    </ErrorBoundary>
   );
 }

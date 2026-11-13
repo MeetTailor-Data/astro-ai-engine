@@ -145,6 +145,7 @@ export default function RocketBuilder() {
   const {
     selectedMission,
     rocketConfig,
+    setRocketConfig,
     updateRocketSlot,
     updateRocketMetrics,
     setActiveMissionId,
