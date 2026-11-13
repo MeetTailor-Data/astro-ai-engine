@@ -14,6 +14,7 @@ import { createCustomMission } from '../services/api';
 import { computeResources } from '../utils/missionResources';
 import { computeRocketPhysics, validateRocketForMission } from '../utils/missionPhysics';
 import { soundEngine } from '../utils/soundEffects';
+import GoNoGoPanel, { buildRoleChecks } from './GoNoGoPanel';
 import { CrewPortrait } from './HudFrame';
 import {
   HardwareToggleSwitch,
@@ -193,6 +194,8 @@ export default function RocketBuilder() {
   const [propellantType, setPropellantType] = useState(
     rocketConfig.propellantTank?.propellantType ?? 'rp1_kerosene'
   );
+  const [teamMode, setTeamMode] = useState(false);
+  const [teamCleared, setTeamCleared] = useState(false);
 
   const nextEmptySlot = useMemo(() => {
     const found = VAB_ASSEMBLY_ORDER.find((s) => rocketConfig[s.key] === null);
@@ -219,6 +222,17 @@ export default function RocketBuilder() {
     () => computeResources(rocketConfig, selectedMission),
     [rocketConfig, selectedMission]
   );
+
+  const roleChecks = useMemo(
+    () => buildRoleChecks({ physics, validation: validationResult, resources, mission: selectedMission }),
+    [physics, validationResult, resources, selectedMission]
+  );
+
+  const rosterSignature = `${VAB_ASSEMBLY_ORDER.map((s) => rocketConfig[s.key]?.id ?? '-').join('|')}|${
+    rocketConfig.propellantTank?.fuelMassKg ?? 0
+  }|${rocketConfig.propellantTank?.propellantType ?? ''}`;
+
+  const launchBlocked = resources.overBudget || (teamMode && !teamCleared);
 
   useEffect(() => {
     updateRocketMetrics({
@@ -344,7 +358,7 @@ export default function RocketBuilder() {
   );
 
   const handleLaunch = useCallback(async () => {
-    if (!allSixInstalled || isLaunching || resources.overBudget) return;
+    if (!allSixInstalled || isLaunching || launchBlocked) return;
     soundEngine.playRolloutSiren();
     setIsLaunching(true);
     setLaunchError(null);
@@ -374,7 +388,7 @@ export default function RocketBuilder() {
   }, [
     allSixInstalled,
     isLaunching,
-    resources.overBudget,
+    launchBlocked,
     selectedMission,
     rocketConfig,
     fuelMass,
@@ -705,7 +719,7 @@ export default function RocketBuilder() {
 
         {/* ── RIGHT PANEL (Fixed-height internal scroll, Mars Horizon Royal Blue) ── */}
         <div className="pointer-events-auto flex h-full w-[300px] shrink-0 flex-col justify-between gap-2 xl:w-[320px]">
-          <div className="max-h-[calc(100vh-140px)] overflow-y-auto rounded-lg border border-blue-400/40 bg-[#0F3E8A]/85 p-3 pr-2 text-white shadow-2xl backdrop-blur-md hud-scroll">
+          <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border border-blue-400/40 bg-[#0F3E8A]/85 p-3 pr-2 text-white shadow-2xl backdrop-blur-md hud-scroll">
             <div className="mb-2 border-b border-blue-300/25 pb-1.5 font-display text-xs font-extrabold tracking-wider text-amber-300">
               VEHICLE READINESS // {selectedMission?.targetBody ?? 'EARTH'}
             </div>
@@ -905,13 +919,20 @@ export default function RocketBuilder() {
           </div>
 
           <div className="shrink-0 space-y-1">
+            <GoNoGoPanel
+              checks={roleChecks}
+              signature={rosterSignature}
+              teamMode={teamMode}
+              onTeamModeChange={setTeamMode}
+              onClearedChange={setTeamCleared}
+            />
             {launchError && (
               <div className="text-center text-[10px] font-semibold text-amber-300">{launchError}</div>
             )}
             <TactileButton
               variant="orange"
               hazard
-              disabled={!allSixInstalled || isLaunching || resources.overBudget}
+              disabled={!allSixInstalled || isLaunching || launchBlocked}
               onClick={handleLaunch}
               className="w-full py-3 text-xs"
             >
@@ -922,6 +943,8 @@ export default function RocketBuilder() {
                 </>
               ) : resources.overBudget ? (
                 `OVER BUDGET BY $${(resources.costM - resources.capM).toFixed(1)}M`
+              ) : teamMode && allSixInstalled && !teamCleared ? (
+                'AWAITING TEAM GO / NO-GO'
               ) : allSixInstalled ? (
                 'CML-4 // CONFIRM & ROLLOUT TO LAUNCHPAD >>'
               ) : (
