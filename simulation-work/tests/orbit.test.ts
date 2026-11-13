@@ -1,7 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { calculateOrbit } from "../src/orbit.js";
-import { calculateCircularVelocity } from "../src/orbit.js";
-import { calculateOrbitalState } from "../src/orbit.js";
+import {
+  calculateOrbit,
+  calculateCircularVelocity,
+  calculateOrbitalElementsFromVectors,
+  calculateOrbitalState,
+} from "../src/orbit.js";
 
 describe("Orbit Calculator", () => {
   it("calculates a circular orbit correctly", () => {
@@ -13,6 +16,50 @@ describe("Orbit Calculator", () => {
     expect(state.eccentricity).toBeCloseTo(0, 5);
     expect(state.perigeeAltitudeKm).toBeCloseTo(400, 3);
     expect(state.apogeeAltitudeKm).toBeCloseTo(400, 3);
+  });
+
+  it("calculates orbital elements from circular velocity vectors", () => {
+    const radius = 6_371_000 + 400_000;
+    const velocity = Math.sqrt(3.986004418e14 / radius);
+
+    const elements = calculateOrbitalElementsFromVectors(
+      { x: radius, y: 0 },
+      { x: 0, y: velocity },
+    );
+
+    expect(elements.escaped).toBe(false);
+    expect(elements.eccentricity).toBeCloseTo(0, 5);
+    expect(elements.perigeeAltitudeKm).toBeCloseTo(400, 3);
+    expect(elements.apogeeAltitudeKm).toBeCloseTo(400, 3);
+  });
+
+  it("calculates orbital elements after radial velocity develops", () => {
+    const radius = 6_371_000 + 400_000;
+
+    const elements = calculateOrbitalElementsFromVectors(
+      { x: radius, y: 0 },
+      { x: 100, y: 7_672 },
+    );
+
+    expect(elements.escaped).toBe(false);
+    expect(elements.eccentricity).toBeGreaterThan(0);
+    expect(elements.apogeeAltitudeKm!).toBeGreaterThan(
+      elements.perigeeAltitudeKm!,
+    );
+  });
+
+  it("detects escape using velocity vectors", () => {
+    const radius = 6_371_000 + 400_000;
+    const escapeVelocity = Math.sqrt(
+      (2 * 3.986004418e14) / radius,
+    );
+
+    const elements = calculateOrbitalElementsFromVectors(
+      { x: radius, y: 0 },
+      { x: 0, y: escapeVelocity * 1.1 },
+    );
+
+    expect(elements.escaped).toBe(true);
   });
 
   it("calculates higher apogee after a prograde velocity increase", () => {
