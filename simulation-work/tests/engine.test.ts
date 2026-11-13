@@ -37,52 +37,51 @@ const physicalBurnConfig = {
 describe("Simulation Engine", () => {
   it("advances simulation time", () => {
     const engine = new SimulationEngine(config);
-
     const telemetry = engine.step();
-
     expect(telemetry.simulationTimeSeconds).toBe(60);
     expect(engine.getCurrentTime()).toBe(60);
   });
 
   it("advances spacecraft position every simulation step", () => {
     const engine = new SimulationEngine(config);
-
     const first = engine.step();
     const second = engine.step();
-
     expect(second.positionYM).not.toBe(first.positionYM);
     expect(second.positionXM).not.toBe(first.positionXM);
   });
 
+  it("reports orbital elements from physical state", () => {
+    const engine = new SimulationEngine(config);
+
+    const telemetry = engine.step();
+
+    expect(telemetry.orbitalElements.escaped).toBe(false);
+    expect(telemetry.orbitalElements.eccentricity).toBeCloseTo(0, 3);
+    expect(telemetry.orbitalElements.apogeeAltitudeKm).toBeCloseTo(
+      config.altitudeKm,
+      1,
+    );
+  });
+
   it("changes physical velocity after prograde burn", () => {
     const engine = new SimulationEngine(physicalBurnConfig);
-
     const before = engine.step();
-
     engine.burn(10, "PROGRADE");
-
     const after = engine.step();
-
     expect(after.velocityYMs).toBeGreaterThan(before.velocityYMs);
   });
 
   it("reduces physical velocity after retrograde burn", () => {
     const engine = new SimulationEngine(physicalBurnConfig);
-
     const before = engine.step();
-
     engine.burn(10, "RETROGRADE");
-
     const after = engine.step();
-
     expect(after.velocityYMs).toBeLessThan(before.velocityYMs);
   });
 
   it("generates telemetry", () => {
     const engine = new SimulationEngine(config);
-
     const telemetry = engine.step();
-
     expect(telemetry.generatedPowerW).toBeGreaterThan(0);
     expect(telemetry.orbitalPhase).toBeGreaterThan(0);
     expect(telemetry.batteryEnergyWh).toBeGreaterThan(0);
@@ -90,7 +89,6 @@ describe("Simulation Engine", () => {
 
   it("executes scheduled events", () => {
     const engine = new SimulationEngine(config);
-
     engine.eventScheduler.schedule({
       id: "deployment",
       type: "DEPLOYMENT",
@@ -98,7 +96,6 @@ describe("Simulation Engine", () => {
     });
 
     const telemetry = engine.step();
-
     expect(telemetry.executedEvents).toContain("deployment");
   });
 
@@ -186,9 +183,7 @@ describe("Simulation Engine", () => {
 
     const initialVelocity = engine.step().orbitalVelocityMs;
     engine.burn(10, "RETROGRADE");
-
     const telemetry = engine.step();
-
     expect(telemetry.orbitalVelocityMs).toBeLessThan(initialVelocity);
     expect(telemetry.orbitalVelocityMs).toBeGreaterThan(0);
     expect(telemetry.orbitalState.velocityMs).toBe(
@@ -208,11 +203,8 @@ describe("Simulation Engine", () => {
     });
 
     const initialVelocity = engine.step().orbitalVelocityMs;
-
     engine.burn(10, "PROGRADE");
-
     const telemetry = engine.step();
-
     expect(telemetry.orbitalVelocityMs).toBeGreaterThan(initialVelocity);
     expect(telemetry.orbitalState.apogeeAltitudeKm!).toBeGreaterThan(
       config.altitudeKm,
@@ -231,11 +223,8 @@ describe("Simulation Engine", () => {
     });
 
     const initialVelocity = engine.step().orbitalVelocityMs;
-
     engine.burn(10, "RETROGRADE");
-
     const telemetry = engine.step();
-
     expect(telemetry.orbitalVelocityMs).toBeLessThan(initialVelocity);
     expect(telemetry.orbitalState.perigeeAltitudeKm!).toBeLessThan(
       config.altitudeKm,
@@ -254,13 +243,11 @@ describe("Simulation Engine", () => {
     });
 
     const initialTelemetry = engine.step();
-
     expect(() => engine.burn(1000, "RETROGRADE")).toThrow(
       "Retrograde burn exceeds current orbital velocity",
     );
 
     const telemetry = engine.step();
-
     expect(telemetry.fuelRemainingKg).toBe(
       initialTelemetry.fuelRemainingKg,
     );
@@ -272,31 +259,23 @@ describe("Simulation Engine", () => {
 
   it("returns latest telemetry", () => {
     const engine = new SimulationEngine(config);
-
     engine.step();
-
     expect(engine.getLatestTelemetry()?.simulationTimeSeconds).toBe(60);
   });
 
   it("exports telemetry as JSON", () => {
     const engine = new SimulationEngine(config);
-
     engine.step();
-
     const exported = JSON.parse(engine.exportTelemetryJSON());
-
     expect(exported).toHaveLength(1);
     expect(exported[0].simulationTimeSeconds).toBe(60);
   });
 
   it("protects internal telemetry from external modification", () => {
     const engine = new SimulationEngine(config);
-
     engine.step();
-
     const history = engine.getTelemetryHistory();
     history[0]?.executedEvents.push("fake-event");
-
     expect(engine.getLatestTelemetry()?.executedEvents).not.toContain(
       "fake-event",
     );
