@@ -1,6 +1,18 @@
 const EARTH_RADIUS_M = 6_371_000;
 const EARTH_MU = 3.986004418e14;
 
+export function calculateCircularVelocity(
+  altitudeKm: number
+): number {
+  if (!Number.isFinite(altitudeKm) || altitudeKm <= 0) {
+    throw new Error("Altitude must be greater than zero");
+  }
+
+  const radiusM = EARTH_RADIUS_M + altitudeKm * 1000;
+
+  return Math.sqrt(EARTH_MU / radiusM);
+}
+
 export interface OrbitInput {
   altitudeKm: number;
   elapsedSeconds: number;

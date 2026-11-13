@@ -4,8 +4,17 @@ import { calculateBattery } from "./battery.js";
 import { calculateCommunications } from "./communications.js";
 import { EventScheduler } from "./events.js";
 import { TelemetryStore } from "./telemetry.js";
+import { calculatePropulsion } from "./propulsion.js";
+
+export interface PropulsionConfig {
+  thrustN: number;
+  ispSeconds: number;
+  dryMassKg: number;
+  initialPropellantKg: number;
+}
 
 export interface SimulationConfig {
+  propulsion?: PropulsionConfig;
   altitudeKm: number;
   timeStepSeconds: number;
 
@@ -41,10 +50,22 @@ export interface Telemetry {
   dataBufferGB: number;
 
   executedEvents: string[];
+
+  currentMassKg: number;
+  fuelRemainingKg: number;
+  cumulativeDeltaVMS: number;
+  engineBurning: boolean;
 }
 
 const MAX_TIME_STEP_SECONDS = 3600;
 const MAX_SIMULATION_TIME_SECONDS = 10_000_000;
+
+export interface PropulsionConfig {
+  thrustN: number;
+  ispSeconds: number;
+  dryMassKg: number;
+  initialPropellantKg: number;
+}
 
 function validateConfig(config: SimulationConfig): void {
   if (!config || typeof config !== "object") {
@@ -120,6 +141,10 @@ export class SimulationEngine {
   private readonly scheduler = new EventScheduler();
   private readonly telemetry = new TelemetryStore();
 
+  private fuelRemainingKg: number;
+  private cumulativeDeltaVMS = 0;
+  private engineBurning = false;
+
   private simulationTimeSeconds = 0;
   private batteryEnergyWh: number;
   private dataBufferGB: number;
@@ -132,6 +157,7 @@ export class SimulationEngine {
 
     this.batteryEnergyWh = config.initialBatteryEnergyWh;
     this.dataBufferGB = config.initialBufferGB;
+    this.fuelRemainingKg = config.propulsion?.initialPropellantKg ?? 0;
   }
 
   get eventScheduler(): EventScheduler {
@@ -204,6 +230,13 @@ export class SimulationEngine {
       dataBufferGB: communications.remainingBufferGB,
 
       executedEvents: dueEvents.map((event) => event.id),
+      currentMassKg: this.config.propulsion
+        ? this.config.propulsion.dryMassKg + this.fuelRemainingKg
+        : 0,
+
+      fuelRemainingKg: this.fuelRemainingKg,
+      cumulativeDeltaVMS: this.cumulativeDeltaVMS,
+      engineBurning: this.engineBurning,
     };
 
     this.telemetry.record(telemetry);
@@ -213,6 +246,36 @@ export class SimulationEngine {
     this.dataBufferGB = communications.remainingBufferGB;
 
     return telemetry;
+  }
+
+  burn(durationSeconds: number) {
+    const propulsion = this.config.propulsion;
+
+    if (!propulsion) {
+      throw new Error("Propulsion is not configured");
+    }
+
+    if (!Number.isFinite(durationSeconds) || durationSeconds <= 0) {
+      throw new Error("Burn duration must be positive and finite");
+    }
+
+    if (this.fuelRemainingKg <= 0) {
+      throw new Error("No propellant remaining");
+    }
+
+    const result = calculatePropulsion({
+      thrustN: propulsion.thrustN,
+      ispSeconds: propulsion.ispSeconds,
+      burnDurationSeconds: durationSeconds,
+      dryMassKg: propulsion.dryMassKg,
+      initialPropellantKg: this.fuelRemainingKg,
+    });
+
+    this.fuelRemainingKg = result.remainingPropellantKg;
+    this.cumulativeDeltaVMS += result.deltaVMS;
+    this.engineBurning = result.consumedPropellantKg > 0;
+
+    return result;
   }
 
   getCurrentTime(): number {

@@ -1,4 +1,3 @@
-
 import { describe, it, expect } from "vitest";
 import { SimulationEngine } from "../src/engine.js";
 
@@ -21,7 +20,7 @@ const config = {
   bufferCapacityGB: 10,
   initialBufferGB: 0,
   downlinkBandwidthMbps: 10,
-  groundStationAvailable: false
+  groundStationAvailable: false,
 };
 
 describe("Simulation Engine", () => {
@@ -50,7 +49,7 @@ describe("Simulation Engine", () => {
     engine.eventScheduler.schedule({
       id: "deployment",
       type: "DEPLOYMENT",
-      timeSeconds: 30
+      timeSeconds: 30,
     });
 
     const telemetry = engine.step();
@@ -59,20 +58,22 @@ describe("Simulation Engine", () => {
   });
 
   it("rejects invalid time step", () => {
-    expect(() =>
-      new SimulationEngine({
-        ...config,
-        timeStepSeconds: 0
-      })
+    expect(
+      () =>
+        new SimulationEngine({
+          ...config,
+          timeStepSeconds: 0,
+        }),
     ).toThrow();
   });
 
   it("rejects battery energy above capacity", () => {
-    expect(() =>
-      new SimulationEngine({
-        ...config,
-        initialBatteryEnergyWh: 600
-      })
+    expect(
+      () =>
+        new SimulationEngine({
+          ...config,
+          initialBatteryEnergyWh: 600,
+        }),
     ).toThrow();
   });
 
@@ -82,45 +83,75 @@ describe("Simulation Engine", () => {
     expect(engine.getCurrentTime()).toBe(0);
     expect(engine.getCurrentTime()).toBe(0);
   });
+
   it("automatically records telemetry after each step", () => {
-  const engine = new SimulationEngine(config);
+    const engine = new SimulationEngine(config);
 
-  engine.step();
-  engine.step();
+    engine.step();
+    engine.step();
 
-  expect(engine.getTelemetryCount()).toBe(2);
-  expect(engine.getTelemetryHistory()).toHaveLength(2);
-});
+    expect(engine.getTelemetryCount()).toBe(2);
+    expect(engine.getTelemetryHistory()).toHaveLength(2);
+  });
 
-it("returns latest telemetry", () => {
-  const engine = new SimulationEngine(config);
+  it("consumes fuel and updates mass after engine burn", () => {
+    const engine = new SimulationEngine({
+      ...config,
+      propulsion: {
+        thrustN: 1000,
+        ispSeconds: 300,
+        dryMassKg: 500,
+        initialPropellantKg: 100,
+      },
+    });
 
-  engine.step();
+    const result = engine.burn(10);
 
-  expect(engine.getLatestTelemetry()?.simulationTimeSeconds)
-    .toBe(60);
-});
+    expect(result.consumedPropellantKg).toBeGreaterThan(0);
+    expect(result.remainingPropellantKg).toBeLessThan(100);
 
-it("exports telemetry as JSON", () => {
-  const engine = new SimulationEngine(config);
+    const telemetry = engine.step();
 
-  engine.step();
+    expect(telemetry.fuelRemainingKg).toBe(
+      result.remainingPropellantKg,
+    );
 
-  const exported = JSON.parse(engine.exportTelemetryJSON());
+    expect(telemetry.currentMassKg).toBeCloseTo(
+      500 + result.remainingPropellantKg,
+    );
 
-  expect(exported).toHaveLength(1);
-  expect(exported[0].simulationTimeSeconds).toBe(60);
-});
+    expect(telemetry.cumulativeDeltaVMS).toBeGreaterThan(0);
+  });
 
-it("protects internal telemetry from external modification", () => {
-  const engine = new SimulationEngine(config);
+  it("returns latest telemetry", () => {
+    const engine = new SimulationEngine(config);
 
-  engine.step();
+    engine.step();
 
-  const history = engine.getTelemetryHistory();
-  history[0]?.executedEvents.push("fake-event");
+    expect(engine.getLatestTelemetry()?.simulationTimeSeconds).toBe(60);
+  });
 
-  expect(engine.getLatestTelemetry()?.executedEvents)
-    .not.toContain("fake-event");
-});
+  it("exports telemetry as JSON", () => {
+    const engine = new SimulationEngine(config);
+
+    engine.step();
+
+    const exported = JSON.parse(engine.exportTelemetryJSON());
+
+    expect(exported).toHaveLength(1);
+    expect(exported[0].simulationTimeSeconds).toBe(60);
+  });
+
+  it("protects internal telemetry from external modification", () => {
+    const engine = new SimulationEngine(config);
+
+    engine.step();
+
+    const history = engine.getTelemetryHistory();
+    history[0]?.executedEvents.push("fake-event");
+
+    expect(engine.getLatestTelemetry()?.executedEvents).not.toContain(
+      "fake-event",
+    );
+  });
 });
