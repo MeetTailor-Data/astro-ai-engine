@@ -11,6 +11,7 @@ Developed by **Astro Architects** for the NASA Space Apps Challenge 2026 — Spa
 ## Table of Contents
 
 - [Overview](#overview)
+- [NASA Space Apps Challenge Alignment](#nasa-space-apps-challenge-alignment)
 - [Architecture](#architecture)
 - [Features](#features)
 - [Technology Stack](#technology-stack)
@@ -43,6 +44,41 @@ The project aims to make space mission design more interactive and understandabl
 
 ---
 
+## NASA Space Apps Challenge Alignment
+
+Astro AI Engine is developed for the **NASA Space Apps Challenge 2026 — Space Mission Design Game**.
+
+The project explores educational space mission design through simulation, visualization, and machine learning.
+
+### Mission Design Concepts
+
+The platform incorporates concepts related to:
+
+- **Launch Segment:** Rocket configuration, propulsion, fuel consumption, and mission launch simulation.
+- **Space Segment:** Orbital motion, spacecraft power, communications, and mission objectives.
+- **Ground Segment:** Mission telemetry and communication interfaces.
+- **User Segment:** Mission visualization, results, and scientific data presentation.
+
+### Trajectory and Mission Analysis
+
+The simulator incorporates simplified mission analysis concepts, including:
+
+- Orbital propagation and gravitational motion.
+- Atmospheric drag and orbital decay.
+- Propulsion and delta-v calculations.
+- Solar power generation and eclipse effects.
+- Mission objectives, validation, and scoring.
+
+### Machine Learning for Mission Analysis
+
+The machine learning pipeline generates synthetic mission datasets and trains predictive models to analyze mission outcomes.
+
+These predictions are experimental and are not substitutes for numerical physics simulation or real-world mission analysis.
+
+> The project is inspired by space mission design concepts and is not an official NASA, JPL, or Goddard Space Flight Center software product.
+
+---
+
 ## Architecture
 
 ```text
@@ -53,7 +89,6 @@ The project aims to make space mission design more interactive and understandabl
           v                v                v
    Simulation Engine   Frontend       ML Pipeline
     TypeScript         React           Python
-          |                |                |
           |                |                |
           v                v                v
     Mission Physics   3D Visuals     Training Data
@@ -71,7 +106,7 @@ The project aims to make space mission design more interactive and understandabl
 
 ### Component Interaction
 
-- The frontend provides the mission configuration and interactive visualization.
+- The frontend provides mission configuration and interactive visualization.
 - The simulation engine calculates mission progression, subsystem states, and mission outcomes.
 - The Express API exposes simulator functionality to the frontend.
 - The synthetic dataset generator produces mission data for the ML pipeline.
@@ -533,9 +568,7 @@ Before submitting simulator changes, run type checking and the complete simulato
 
 Do not commit secrets or private environment configuration.
 
-Environment files should remain local.
-
-If a component requires environment variables, document their names in an `.env.example` file without including real credentials.
+Environment files should remain local. If a component requires environment variables, document their names in an `.env.example` file without including real credentials.
 
 ---
 
