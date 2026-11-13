@@ -1,6 +1,7 @@
 import {
   calculateOrbit,
   calculateOrbitalElementsFromVectors,
+  isInEclipse,
   type OrbitalElements,
 } from "./orbit.js";
 import { calculatePower } from "./power.js";
@@ -57,6 +58,7 @@ export interface Telemetry {
   simulationTimeSeconds: number;
   orbitalPhase: number;
   inEclipse: boolean;
+  impacted: boolean;
 
   generatedPowerW: number;
   netPowerW: number;
@@ -194,10 +196,24 @@ export class SimulationEngine {
 
     const nextTime = this.simulationTimeSeconds + this.config.timeStepSeconds;
 
+    const dragConfig = this.config.propulsion
+      ? {
+          massKg:
+            this.config.propulsion.dryMassKg +
+            this.fuelRemainingKg,
+          coefficient: 2.2,
+          areaM2: 2,
+        }
+      : undefined;
     const nextPhysicalOrbitalState = propagateOrbit(
       this.physicalOrbitalState,
       this.config.timeStepSeconds,
+      dragConfig,
     );
+    const inEclipse = isInEclipse({
+      position: nextPhysicalOrbitalState.position,
+      sunDirection: { x: 1, y: 0 },
+    });
 
     const orbit = calculateOrbit({
       altitudeKm: this.config.altitudeKm,
@@ -209,7 +225,9 @@ export class SimulationEngine {
       panelAreaM2: this.config.panelAreaM2,
       efficiency: this.config.panelEfficiency,
       performanceFactor: this.config.panelPerformanceFactor,
-      solarIrradianceWPerM2: this.config.solarIrradianceWPerM2,
+      solarIrradianceWPerM2: inEclipse
+        ? 0
+        : this.config.solarIrradianceWPerM2,
       powerConsumedW: this.config.powerConsumedW,
     });
 
@@ -220,7 +238,7 @@ export class SimulationEngine {
       powerConsumedW: this.config.powerConsumedW,
       durationSeconds: this.config.timeStepSeconds,
       efficiency: this.config.batteryEfficiency,
-      inEclipse: orbit.inEclipse,
+      inEclipse,
     });
 
     const communications = calculateCommunications({
@@ -254,7 +272,8 @@ export class SimulationEngine {
       ),
       simulationTimeSeconds: nextTime,
       orbitalPhase: orbit.currentPhase,
-      inEclipse: orbit.inEclipse,
+      inEclipse,
+      impacted: nextPhysicalOrbitalState.impacted ?? false,
 
       generatedPowerW: power.powerGeneratedW,
       netPowerW: power.netPowerW,
@@ -287,6 +306,10 @@ export class SimulationEngine {
     durationSeconds: number,
     direction: BurnDirection = "PROGRADE",
   ) {
+    if (this.physicalOrbitalState.impacted) {
+      throw new Error("Cannot burn after Earth impact");
+    }
+
     const propulsion = this.config.propulsion;
 
     if (!propulsion) {

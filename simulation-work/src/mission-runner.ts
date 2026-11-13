@@ -58,6 +58,12 @@ export class MissionRunner {
       finalTelemetry = this.engine.step();
       stepsExecuted++;
 
+      if (finalTelemetry.impacted) {
+        status = "FAILED";
+        reason = "Earth impact";
+        break;
+      }
+
       if (finalTelemetry.batteryEnergyWh <= 0) {
         status = "FAILED";
         reason = "Battery depleted";

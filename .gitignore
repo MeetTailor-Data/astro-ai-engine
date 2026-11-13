@@ -33,3 +33,25 @@ cleanup_repo.py
 .DS_Store
 *.log
 .env
+
+# Environment variants
+.env.*
+!.env.example
+
+# TypeScript / Testing
+*.tsbuildinfo
+coverage/
+
+# Python experiment artifacts
+wandb/
+runs/
+lightning_logs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Temporary / OS
+*.tmp
+*.swp
+*.swo
+Thumbs.db

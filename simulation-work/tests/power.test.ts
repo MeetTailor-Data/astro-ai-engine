@@ -34,6 +34,18 @@ describe("Power Calculator", () => {
     expect(result.powerPass).toBe(false);
   });
 
+  it("generates no solar power when irradiance is zero", () => {
+    const result = calculatePower({
+      panelAreaM2: 2,
+      efficiency: 0.25,
+      performanceFactor: 1,
+      solarIrradianceWPerM2: 0,
+      powerConsumedW: 500,
+    });
+
+    expect(result.powerGeneratedW).toBe(0);
+  });
+
   it("rejects negative panel area", () => {
 
     expect(() => calculatePower({

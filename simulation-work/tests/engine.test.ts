@@ -87,6 +87,18 @@ describe("Simulation Engine", () => {
     expect(telemetry.batteryEnergyWh).toBeGreaterThan(0);
   });
 
+  it("generates zero solar power during eclipse", () => {
+    const engine = new SimulationEngine({
+      ...config,
+      timeStepSeconds: 2772,
+    });
+
+    const telemetry = engine.step();
+
+    expect(telemetry.inEclipse).toBe(true);
+    expect(telemetry.generatedPowerW).toBe(0);
+  });
+
   it("executes scheduled events", () => {
     const engine = new SimulationEngine(config);
     engine.eventScheduler.schedule({
@@ -165,8 +177,8 @@ describe("Simulation Engine", () => {
 
     expect(telemetry.cumulativeDeltaVMS).toBeGreaterThan(0);
     expect(telemetry.orbitalVelocityMs).toBeGreaterThan(initialVelocity);
-    expect(telemetry.orbitalState.velocityMs).toBe(
-      telemetry.orbitalVelocityMs,
+    expect(telemetry.orbitalVelocityMs).toBeCloseTo(
+      Math.hypot(telemetry.velocityXMs, telemetry.velocityYMs),
     );
   });
 
@@ -186,8 +198,8 @@ describe("Simulation Engine", () => {
     const telemetry = engine.step();
     expect(telemetry.orbitalVelocityMs).toBeLessThan(initialVelocity);
     expect(telemetry.orbitalVelocityMs).toBeGreaterThan(0);
-    expect(telemetry.orbitalState.velocityMs).toBe(
-      telemetry.orbitalVelocityMs,
+    expect(telemetry.orbitalVelocityMs).toBeCloseTo(
+      Math.hypot(telemetry.velocityXMs, telemetry.velocityYMs),
     );
   });
 
@@ -206,7 +218,7 @@ describe("Simulation Engine", () => {
     engine.burn(10, "PROGRADE");
     const telemetry = engine.step();
     expect(telemetry.orbitalVelocityMs).toBeGreaterThan(initialVelocity);
-    expect(telemetry.orbitalState.apogeeAltitudeKm!).toBeGreaterThan(
+    expect(telemetry.orbitalElements.apogeeAltitudeKm!).toBeGreaterThan(
       config.altitudeKm,
     );
   });
@@ -226,13 +238,36 @@ describe("Simulation Engine", () => {
     engine.burn(10, "RETROGRADE");
     const telemetry = engine.step();
     expect(telemetry.orbitalVelocityMs).toBeLessThan(initialVelocity);
-    expect(telemetry.orbitalState.perigeeAltitudeKm!).toBeLessThan(
+    expect(telemetry.orbitalElements.perigeeAltitudeKm!).toBeLessThan(
       config.altitudeKm,
     );
   });
 
-  it("does not consume propellant when a retrograde burn exceeds orbital velocity", () => {
+  it("rejects propulsion burns after Earth impact", () => {
     const engine = new SimulationEngine({
+      ...config,
+      propulsion: {
+        thrustN: 1000,
+        ispSeconds: 300,
+        dryMassKg: 500,
+        initialPropellantKg: 100,
+      },
+    });
+    engine.burn(120, "RETROGRADE");
+
+    let telemetry = engine.step();
+    for (let i = 0; i < 100 && !telemetry.impacted; i++) {
+      telemetry = engine.step();
+    }
+
+    expect(telemetry.impacted).toBe(true);
+    expect(() => engine.burn(10, "RETROGRADE")).toThrow(
+      "Cannot burn after Earth impact",
+    );
+  });
+
+  it("does not consume propellant when a retrograde burn exceeds orbital velocity", () => {
+    const invalidBurnConfig = {
       ...config,
       propulsion: {
         thrustN: 1_000_000_000,
@@ -240,20 +275,26 @@ describe("Simulation Engine", () => {
         dryMassKg: 500,
         initialPropellantKg: 10_000,
       },
-    });
+    };
+    const engine = new SimulationEngine(invalidBurnConfig);
+    const controlEngine = new SimulationEngine(invalidBurnConfig);
 
     const initialTelemetry = engine.step();
+    controlEngine.step();
+
     expect(() => engine.burn(1000, "RETROGRADE")).toThrow(
       "Retrograde burn exceeds current orbital velocity",
     );
 
     const telemetry = engine.step();
+    const controlTelemetry = controlEngine.step();
+
     expect(telemetry.fuelRemainingKg).toBe(
       initialTelemetry.fuelRemainingKg,
     );
     expect(telemetry.cumulativeDeltaVMS).toBe(0);
     expect(telemetry.orbitalVelocityMs).toBe(
-      initialTelemetry.orbitalVelocityMs,
+      controlTelemetry.orbitalVelocityMs,
     );
   });
 

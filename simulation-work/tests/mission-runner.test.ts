@@ -54,6 +54,25 @@ describe("MissionRunner", () => {
     expect(result.reason).toBe("Battery depleted");
   });
 
+  it("fails a mission after Earth impact", () => {
+    const engine = new SimulationEngine({
+      ...config,
+      propulsion: {
+        thrustN: 1000,
+        ispSeconds: 300,
+        dryMassKg: 500,
+        initialPropellantKg: 100,
+      },
+    });
+    engine.burn(120, "RETROGRADE");
+
+    const result = new MissionRunner(engine).run(6000);
+
+    expect(result.status).toBe("FAILED");
+    expect(result.reason).toBe("Earth impact");
+    expect(result.finalTelemetry.impacted).toBe(true);
+  });
+
   it("rejects invalid mission duration", () => {
     const runner = new MissionRunner(
       new SimulationEngine(config)

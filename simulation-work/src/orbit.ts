@@ -164,6 +164,48 @@ export function calculateOrbit(input: OrbitInput): OrbitResult {
   };
 }
 
+export interface EclipseInput {
+  position: {
+    x: number;
+    y: number;
+  };
+  sunDirection: {
+    x: number;
+    y: number;
+  };
+}
+
+export function isInEclipse(input: EclipseInput): boolean {
+  const { position, sunDirection } = input;
+
+  const sunMagnitude = Math.hypot(
+    sunDirection.x,
+    sunDirection.y,
+  );
+
+  if (sunMagnitude === 0) {
+    throw new Error("Sun direction cannot be zero");
+  }
+
+  const sunX = sunDirection.x / sunMagnitude;
+  const sunY = sunDirection.y / sunMagnitude;
+
+  // Positive projection means spacecraft is sunward.
+  const projection =
+    position.x * sunX + position.y * sunY;
+
+  if (projection >= 0) {
+    return false;
+  }
+
+  // Perpendicular distance from Earth-Sun axis.
+  const perpendicularDistance = Math.abs(
+    position.x * sunY - position.y * sunX,
+  );
+
+  return perpendicularDistance < EARTH_RADIUS_M;
+}
+
 export interface OrbitalElements {
   specificEnergyJPerKg: number;
   angularMomentumM2PerS: number;
