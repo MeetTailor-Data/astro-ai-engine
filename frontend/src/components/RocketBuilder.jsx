@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import {
   ArrowLeft,
+  Sparkles,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
@@ -227,6 +228,60 @@ export default function RocketBuilder() {
     [activeSlot, handleSelectSlot]
   );
 
+  const handleAutoOptimize = useCallback(() => {
+    soundEngine.playPartInstallSound();
+    const mId = selectedMission?.id || 'leo-sat-01';
+    let booster, fuelKgs, fuelType, upper, edl, payload, cone;
+
+    if (mId === 'mars-rover-03') {
+      booster = BOOSTER_PARTS.find((p) => p.id === 'heavy_core_4_strapon') || BOOSTER_PARTS[3];
+      fuelKgs = 95000;
+      fuelType = 'liquid_methane';
+      upper = UPPER_STAGE_PARTS.find((p) => p.id === 'methalox_deep_space') || UPPER_STAGE_PARTS[2];
+      edl = EDL_PARTS.find((p) => p.id === 'full_edl_package') || EDL_PARTS[3];
+      payload = AVIONICS_PARTS.find((p) => p.id === 'mars_rover') || AVIONICS_PARTS[2];
+      cone = NOSECONE_PARTS.find((p) => p.id === 'heavy_thermal_fairing') || NOSECONE_PARTS[2];
+    } else if (mId === 'lunar-lander-02') {
+      booster = BOOSTER_PARTS.find((p) => p.id === 'heavy_core_2_strapon') || BOOSTER_PARTS[2];
+      fuelKgs = 65000;
+      fuelType = 'rp1_kerosene';
+      upper = UPPER_STAGE_PARTS.find((p) => p.id === 'liquid_hydrolox') || UPPER_STAGE_PARTS[1];
+      edl = EDL_PARTS.find((p) => p.id === 'full_edl_package') || EDL_PARTS[3];
+      payload = AVIONICS_PARTS.find((p) => p.id === 'lunar_lander') || AVIONICS_PARTS[1];
+      cone = NOSECONE_PARTS.find((p) => p.id === 'reinforced_shroud') || NOSECONE_PARTS[1];
+    } else {
+      // LEO Weather Satellite default
+      booster = BOOSTER_PARTS.find((p) => p.id === 'tri_engine_cluster') || BOOSTER_PARTS[1];
+      fuelKgs = 45000;
+      fuelType = 'rp1_kerosene';
+      upper = UPPER_STAGE_PARTS.find((p) => p.id === 'liquid_hydrolox') || UPPER_STAGE_PARTS[1];
+      edl = EDL_PARTS.find((p) => p.id === 'drogue_main_chute') || EDL_PARTS[1];
+      payload = AVIONICS_PARTS.find((p) => p.id === 'weather_sat') || AVIONICS_PARTS[0];
+      cone = NOSECONE_PARTS.find((p) => p.id === 'standard_cone') || NOSECONE_PARTS[0];
+    }
+
+    const tank = {
+      id: 'propellant_tank',
+      shortLabel: `${fuelType.replace(/_/g, ' ')} / ${(fuelKgs / 1000).toFixed(0)}t`,
+      fuelMassKg: fuelKgs,
+      propellantType: fuelType,
+    };
+
+    setPropellantType(fuelType);
+    setFuelMass(fuelKgs);
+    setRocketConfig((prev) => ({
+      ...prev,
+      mainBooster: booster,
+      propellantTank: tank,
+      upperStage: upper,
+      edlSystem: edl,
+      avionicsPayload: payload,
+      nosecone: cone,
+    }));
+    setLastInstalledSlot('avionicsPayload');
+    setLastInstalledAt(Date.now());
+  }, [selectedMission, setRocketConfig]);
+
   const handleInstallPart = useCallback(
     (slotKey, part) => {
       soundEngine.playPartInstallSound();
@@ -329,9 +384,20 @@ export default function RocketBuilder() {
               <span className="font-display text-xs font-extrabold tracking-wider text-white uppercase">
                 {activeSlotMeta.shortLabel}
               </span>
-              <span className="telemetry-num rounded bg-blue-950/70 px-2 py-0.5 text-[10px] font-bold text-amber-300">
-                {installedCount}/6 SLOTS
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleAutoOptimize}
+                  className="flex items-center gap-1 rounded bg-[#00F0FF]/20 border border-[#00F0FF]/60 px-2 py-0.5 text-[9px] font-extrabold text-[#00F0FF] hover:bg-[#00F0FF]/35 transition shadow-[0_0_8px_rgba(0,240,255,0.3)]"
+                  title="Automatically equip verified flight-certified parts for this mission"
+                >
+                  <Sparkles className="h-2.5 w-2.5 text-amber-300" />
+                  AUTO-OPTIMIZE STACK
+                </button>
+                <span className="telemetry-num rounded bg-blue-950/70 px-2 py-0.5 text-[10px] font-bold text-amber-300">
+                  {installedCount}/6 SLOTS
+                </span>
+              </div>
             </div>
 
             <div className="mb-2.5 grid grid-cols-6 gap-1">
