@@ -550,7 +550,7 @@ export default function RocketBuilder() {
                         onClick={() => handleInstallPart(activeSlot, inspectedPart)}
                         className="mt-auto w-full"
                       >
-                        {installedPart?.id === inspectedPart.id ? 'Part Attached ✓' : 'Select / Attach Part'}
+                        {installedPart?.id === inspectedPart.id ? 'Module Installed' : 'Install Module'}
                       </TactileButton>
                     </div>
                   )}
@@ -616,7 +616,7 @@ export default function RocketBuilder() {
               <div className="flex items-center justify-between text-[11px] font-bold text-amber-300">
                 <span>PAYLOAD</span>
                 <span className={payloadMatch ? 'text-emerald-300' : 'text-amber-300'}>
-                  {payloadMatch ? '✓ MATCH' : '! CHECK'}
+                  {payloadMatch ? 'NOMINAL' : 'REQUIRED'}
                 </span>
               </div>
               <div className="mt-1 flex justify-between text-xs">
@@ -641,7 +641,7 @@ export default function RocketBuilder() {
               <div className="flex items-center justify-between text-[11px] font-bold text-amber-300">
                 <span>UPPER STAGE & FUEL</span>
                 <span className={physics.deltaV >= targetDv ? 'text-emerald-300' : 'text-amber-300'}>
-                  {physics.deltaV >= targetDv ? '✓' : '!'}
+                  {physics.deltaV >= targetDv ? 'NOMINAL' : 'SHORT'}
                 </span>
               </div>
               <div className="mt-1 flex justify-between text-xs">
@@ -657,7 +657,7 @@ export default function RocketBuilder() {
               <div className="flex items-center justify-between text-[11px] font-bold text-amber-300">
                 <span>BOOSTER & LIFT</span>
                 <span className={physics.twr >= minTwr ? 'text-emerald-300' : 'text-amber-300'}>
-                  {physics.twr >= minTwr ? '✓' : '!'}
+                  {physics.twr >= minTwr ? 'NOMINAL' : 'DEFICIT'}
                 </span>
               </div>
               <div className="mt-1 flex justify-between text-xs">
@@ -683,7 +683,7 @@ export default function RocketBuilder() {
                       : 'text-rose-300'
                   }
                 >
-                  {!validationResult.failedConstraints.some((c) => c.id === 'RECOVERY') ? '✓ SAFE' : '! RISK'}
+                  {!validationResult.failedConstraints.some((c) => c.id === 'RECOVERY') ? 'CERTIFIED' : 'HAZARD'}
                 </span>
               </div>
               <div className="mt-1 flex justify-between text-xs">
@@ -730,17 +730,17 @@ export default function RocketBuilder() {
                       }`}
                     >
                       <Radio className="h-3 w-3 animate-pulse" />
-                      ENGINEER MAYA // LIVE SOLVER
+                      AVIONICS READINESS // INTEGRATION ADVISORY
                     </div>
 
                     {allPassed ? (
                       <p className="text-[10.5px] font-semibold leading-snug text-emerald-100">
-                        ✅ ALL CONSTRAINTS FULFILLED! Your rocket meets every physics criteria for a 100% safe mission. Click &apos;Rollout to Launchpad&apos; to launch!
+                        FLIGHT INTEGRITY CERTIFIED: Vehicle configuration satisfies all structural, propulsion, and recovery criteria. Authorized for launchpad rollout.
                       </p>
                     ) : physicsPassedNeedSlots ? (
                       <div className="space-y-1 text-[10px] leading-snug text-amber-100">
                         <div className="font-bold text-emerald-300">
-                          ✅ All 4 flight constraints passed! Attach remaining {emptySlots.length} slot(s) to unlock Rollout:
+                          4 primary flight constraints nominal. Complete integration for remaining {emptySlots.length} slot(s) to clear rollout:
                         </div>
                         <ul className="list-disc space-y-0.5 pl-3.5 text-blue-100">
                           {emptySlots.map((s) => (
@@ -753,10 +753,10 @@ export default function RocketBuilder() {
                     ) : (
                       <div className="space-y-1.5 text-[10px] leading-snug">
                         <div className="rounded bg-rose-950/75 px-1.5 py-1 font-semibold text-rose-200">
-                          ⚠️ Crash Alert: {validationResult.failedConstraints[0]?.reason}
+                          FLIGHT ENVELOPE EXCURSION: {validationResult.failedConstraints[0]?.reason}
                         </div>
                         <div className="font-bold tracking-wide text-amber-300">
-                          👉 HOW TO PASS ALL CONSTRAINTS:
+                          AVIONICS REMEDIATION DIRECTIVES:
                         </div>
                         <ul className="list-disc space-y-0.5 pl-3.5 text-blue-100">
                           {validationResult.failedConstraints.map((c) => (

@@ -227,7 +227,7 @@ export const BOOSTER_PARTS = [
     reliabilityBonus: 5,
     costM: 28,
     description: 'Single Merlin-class sea-level engine. Reliable for small-to-medium payloads up to ~1,200 kg.',
-    role: 'The simplest booster configuration — one engine, one turbopump, one combustion chamber. Easier to certify but limited total thrust.',
+    role: 'Baseline single staged-combustion engine assembly with gimbal actuation. High propellant efficiency and rapid flight certification for light-to-medium orbital lift.',
     color: '#94A3B8',
   },
   {

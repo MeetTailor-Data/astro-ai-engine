@@ -47,7 +47,7 @@ const SLOT_STACK_LOCATIONS = {
 };
 
 const WELCOME_BRIEFING =
-  'Commander Rudra here. Welcome to Pad-39A! Before we clear the tower, inspect our 6-part launch vehicle on the pad, then open the Solar System Map to select a planetary contract and assemble a rocket that meets every physics requirement.';
+  'Commander Aestro here. Welcome to Pad-39A! Before we clear the tower, inspect our 6-part launch vehicle on the pad, then open the Solar System Map to select a planetary contract and assemble a rocket that meets every physics requirement.';
 
 export default function CommandCenter({ inspectedSlotKey, setInspectedSlotKey }) {
   const { setCurrentStep, missionProfiles } = useMission();
@@ -122,7 +122,7 @@ export default function CommandCenter({ inspectedSlotKey, setInspectedSlotKey })
         </ChamferPanel>
       </motion.div>
 
-      {/* RIGHT HUD DRAWER: 3D ROCKET ANATOMY HOLOGRAM INSPECTOR */}
+      {/* RIGHT HUD DRAWER: 3D ROCKET ANATOMY VEHICLE SCHEMATICS */}
       <motion.aside
         initial={{ opacity: 0, x: 32 }}
         animate={{ opacity: 1, x: 0 }}
@@ -136,10 +136,10 @@ export default function CommandCenter({ inspectedSlotKey, setInspectedSlotKey })
               <div>
                 <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-[0.18em] text-[#00F0FF]">
                   <Crosshair className="h-3.5 w-3.5" />
-                  <span>HOLOGRAM INSPECTOR</span>
+                  <span>VEHICLE SCHEMATICS</span>
                 </div>
                 <h2 className="font-display text-sm font-bold tracking-wider text-white">
-                  6-STAGE ROCKET ANATOMY
+                  6-STAGE INTEGRATED STACK
                 </h2>
               </div>
               <span className="telemetry-num border border-slate-700 bg-[#050811] px-2 py-0.5 text-[10px] text-slate-300">
@@ -221,7 +221,7 @@ export default function CommandCenter({ inspectedSlotKey, setInspectedSlotKey })
               ) : (
                 <div className="border border-slate-800 bg-[#040914]/80 p-2.5 text-xs text-slate-300">
                   <span className="font-display text-[10px] font-bold uppercase tracking-wider text-[#00F0FF]">
-                    TAP ANY STAGE ABOVE OR ON THE 3D ROCKET
+                    SELECT MODULE ON STACK OR 3D VIEW
                   </span>
                   <p className="mt-1 text-[11px] leading-snug text-slate-400">
                     Camera locks onto the selected stage with a holographic ring so you can inspect
@@ -249,7 +249,7 @@ export default function CommandCenter({ inspectedSlotKey, setInspectedSlotKey })
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-[#10B981] shadow-[0_0_8px_#10B981]" />
                   <span className="font-display text-xs font-extrabold tracking-wider text-white">
-                    COMMANDER RUDRA
+                    COMMANDER AESTRO
                   </span>
                 </div>
                 <span className="telemetry-num bg-[#00F0FF]/15 px-2 py-0.5 text-[10px] font-bold text-[#00F0FF]">

@@ -44,7 +44,7 @@ export default function TopNavbar() {
         </div>
         <div className="leading-tight whitespace-nowrap">
           <div className="font-display text-xs font-extrabold tracking-[0.16em] text-white sm:text-sm">
-            ASTRO-AI <span className="text-[#FF6B1A]">HORIZON</span>
+            AESTRO <span className="text-[#FF6B1A]">AI</span>
           </div>
           <div className="telemetry-num text-[10px] tracking-[0.2em] text-[#00F0FF]/80">
             ORBITAL COMMAND // PAD-39A

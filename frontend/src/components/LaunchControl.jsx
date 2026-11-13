@@ -398,7 +398,7 @@ export default function LaunchControl() {
                 </button>
 
                 <TactileButton variant={isLanded ? 'emerald' : 'orange'} onClick={handleOpenDebrief}>
-                  VIEW 3D OUTCOME &amp; AI DEBRIEF REPORT &gt;&gt;
+                  VIEW FLIGHT DEBRIEF &amp; MISSION OUTCOME &gt;&gt;
                   <ChevronRight className="h-4 w-4" />
                 </TactileButton>
               </div>

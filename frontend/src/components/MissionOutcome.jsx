@@ -358,7 +358,7 @@ export default function MissionOutcome() {
               <CrewPortrait character="maya" isSpeaking={true} size={42} />
               <div>
                 <div className="text-[9px] font-extrabold tracking-widest text-amber-300">
-                  AI BLACK-BOX RECORDER // ENGINEER MAYA
+                  FLIGHT RECORDER TELEMETRY DEBRIEF // AVIONICS ANALYSIS
                 </div>
                 <div className="font-display text-xs font-bold text-white">
                   {willLand ? '6-Stage Nominal Flight Synthesis' : 'Root-Cause Failure Reconstruction'}
@@ -370,7 +370,7 @@ export default function MissionOutcome() {
               <div className="hud-scroll max-h-56 space-y-2 overflow-y-auto pr-1 text-xs">
                 <div className="rounded-lg border border-rose-500/45 bg-rose-950/60 p-2.5">
                   <div className="mb-1 text-[10px] font-extrabold tracking-wider text-rose-300">
-                    1) KYA GALTI THI (FAILED CONSTRAINT &amp; CAUSE)
+                    1. FLIGHT ENVELOPE EXCURSIONS (PRIMARY FAILURE MODES)
                   </div>
                   <ul className="space-y-1 text-[11px] text-rose-100">
                     {failedConstraints.map((fc) => (
@@ -383,7 +383,7 @@ export default function MissionOutcome() {
 
                 <div className="rounded-lg border border-amber-400/45 bg-amber-950/45 p-2.5">
                   <div className="mb-1 text-[10px] font-extrabold tracking-wider text-amber-300">
-                    2) KYA KARNA CHAHIYE (VAB FIX GUIDE)
+                    2. AVIONICS &amp; VAB REMEDIATION DIRECTIVES
                   </div>
                   <ul className="list-disc space-y-1 pl-4 text-[11px] text-amber-100">
                     {failedConstraints.map((fc) => (
@@ -417,17 +417,17 @@ export default function MissionOutcome() {
         <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-3 pb-1">
           <TactileButton variant="amber" onClick={handleFixInVab}>
             <Wrench className="h-4 w-4" />
-            🔧 FIX ROCKET IN VAB
+            RECONFIGURE IN VAB
           </TactileButton>
 
           <TactileButton variant="slate" onClick={handleRelaunch}>
             <RotateCcw className="h-4 w-4" />
-            🔄 RE-LAUNCH MISSION
+            RE-ENGAGE LAUNCH SEQUENCE
           </TactileButton>
 
           <TactileButton variant="emerald" onClick={handleNewMission}>
             <Globe className="h-4 w-4" />
-            🌍 SELECT NEW MISSION
+            PLANETARY MISSION DIRECTORY
           </TactileButton>
         </div>
       </div>

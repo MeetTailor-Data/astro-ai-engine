@@ -161,8 +161,8 @@ export function validateRocketForMission(rocketConfig, selectedMission) {
       slotKey: 'avionicsPayload',
       phase: 'ORBIT_INSERT',
       label: `Payload: Equip ${expectedLabel}`,
-      reason: `Wrong or missing spacecraft! This mission requires ${expectedLabel} — equipped: ${avionicsPayload?.shortLabel || 'None'}.`,
-      fixTip: `Slot 5 (Payload): Select '${expectedLabel}'`,
+      reason: `Payload mismatch detected. Mission flight envelope requires ${expectedLabel} bus. Currently equipped: ${avionicsPayload?.shortLabel || 'Unassigned'}.`,
+      fixTip: `Payload Bay (Slot 05): Integrate certified '${expectedLabel}' bus`,
     });
   }
 
@@ -180,8 +180,8 @@ export function validateRocketForMission(rocketConfig, selectedMission) {
       slotKey: 'mainBooster',
       phase: 'LIFTOFF',
       label: `Liftoff TWR ${physics.twr.toFixed(2)} < ${minTwr.toFixed(2)}`,
-      reason: `Engine thrust-to-weight ratio (${physics.twr.toFixed(2)}) is below ${minTwr.toFixed(2)} — rocket cannot clear the launchpad and will stall/tip over.`,
-      fixTip: `Slot 1 (Booster): Select ${recommendedBooster}`,
+      reason: `Liftoff thrust-to-weight ratio (${physics.twr.toFixed(2)}) is below minimum margin (${minTwr.toFixed(2)}) — vehicle lacks sufficient liftoff thrust.`,
+      fixTip: `Main Booster (Slot 01): Equip ${recommendedBooster} to satisfy TWR >= ${minTwr.toFixed(2)}`,
     });
   } else if (physics.twr > 5.0) {
     failedConstraints.push({
@@ -190,8 +190,8 @@ export function validateRocketForMission(rocketConfig, selectedMission) {
       slotKey: 'mainBooster',
       phase: 'MAX_Q',
       label: `Over-G TWR ${physics.twr.toFixed(2)} > 5.00`,
-      reason: `Extreme liftoff acceleration (${physics.twr.toFixed(2)} G) causes structural aerodynamic breakup at Max-Q.`,
-      fixTip: 'Slot 1 (Booster) / Slot 2 (Fuel): Increase fuel load or step down booster thrust',
+      reason: `Liftoff acceleration (${physics.twr.toFixed(2)} G) exceeds maximum dynamic pressure structural limits at Max-Q.`,
+      fixTip: 'Main Booster (Slot 01) / Fuel Tank (Slot 02): Increase propellant load or step down booster thrust',
     });
   }
 
@@ -212,10 +212,10 @@ export function validateRocketForMission(rocketConfig, selectedMission) {
         : "'Solid Kick' or 'Hydrolox'";
     const missingParts = [];
     if (!propellantTank || (propellantTank.fuelMassKg ?? 0) < (missionId === 'mars-rover-03' ? 90000 : missionId === 'lunar-lander-02' ? 65000 : 40000)) {
-      missingParts.push(`Slot 2 (Fuel): Drag Fuel Slider to ${fuelRec}`);
+      missingParts.push(`Propellant Tank (Slot 02): Increase fuel mass to >= ${fuelRec}`);
     }
     if (!upperStage || (missionId === 'mars-rover-03' && upperStage.id !== 'methalox_deep_space')) {
-      missingParts.push(`Slot 3 (Upper Stage): Select ${stageRec}`);
+      missingParts.push(`Upper Vacuum Stage (Slot 03): Equip ${stageRec}`);
     }
     if (missingParts.length === 0) {
       missingParts.push(`Slot 1 (Booster) / Slot 2 (Fuel): Upgrade booster or slide fuel to ${fuelRec}`);

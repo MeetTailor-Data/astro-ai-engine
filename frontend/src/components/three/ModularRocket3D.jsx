@@ -12,6 +12,51 @@ import * as THREE from 'three';
  * - X-Ray Cutaway Mode turns outer skins into translucent blue hologram glass.
  */
 
+function useAestroAiDecalTexture() {
+  return useMemo(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = '#060B18';
+    ctx.beginPath();
+    ctx.roundRect(8, 8, 496, 112, 18);
+    ctx.fill();
+
+    ctx.strokeStyle = '#00F0FF';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.roundRect(8, 8, 496, 112, 18);
+    ctx.stroke();
+
+    ctx.strokeStyle = '#FF6B1A';
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.moveTo(32, 22);
+    ctx.lineTo(160, 22);
+    ctx.stroke();
+
+    ctx.font = '900 54px system-ui, -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText('AESTRO', 205, 68);
+
+    ctx.fillStyle = '#00F0FF';
+    ctx.fillText('AI', 380, 68);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.ClampToEdgeWrapping;
+    tex.wrapT = THREE.ClampToEdgeWrapping;
+    tex.needsUpdate = true;
+    return tex;
+  }, []);
+}
+
 function useCheckerTexture() {
   return useMemo(() => {
     const canvas = document.createElement('canvas');
@@ -442,7 +487,7 @@ function UpperStageGeom({ partId, xray, checkerTex }) {
   );
 }
 
-function PropellantTankGeom({ fuelMass, propellantType, xray, checkerTex }) {
+function PropellantTankGeom({ fuelMass, propellantType, xray, checkerTex, aestroLogoTex }) {
   const scaleY = 0.55 + (fuelMass / 120000) * 1.05;
   const scaleXZ = 0.94 + (fuelMass / 120000) * 0.14;
   const fuelColor =
@@ -459,6 +504,18 @@ function PropellantTankGeom({ fuelMass, propellantType, xray, checkerTex }) {
         <cylinderGeometry args={[0.46, 0.46, 2.0, 28]} />
         <HullMaterial color="#F8FAFC" xray={xray} />
       </mesh>
+      {aestroLogoTex && (
+        <>
+          <mesh position={[0, 0.2, 0.472]} rotation={[0, 0, 0]}>
+            <planeGeometry args={[0.58, 0.15]} />
+            <meshBasicMaterial map={aestroLogoTex} transparent opacity={xray ? 0.35 : 0.98} />
+          </mesh>
+          <mesh position={[0, 0.2, -0.472]} rotation={[0, Math.PI, 0]}>
+            <planeGeometry args={[0.58, 0.15]} />
+            <meshBasicMaterial map={aestroLogoTex} transparent opacity={xray ? 0.35 : 0.98} />
+          </mesh>
+        </>
+      )}
       {xray ? (
         <>
           <mesh>
@@ -569,7 +626,7 @@ function EngineNozzleMesh({ x, z, xray }) {
   );
 }
 
-function MainBoosterGeom({ partId, xray, checkerTex }) {
+function MainBoosterGeom({ partId, xray, checkerTex, aestroLogoTex }) {
   const strapon2 = ['heavy_core_2_strapon', 'heavy_core_4_strapon'].includes(partId);
   const strapon4 = partId === 'heavy_core_4_strapon';
   const isTri = partId === 'tri_engine_cluster';
@@ -581,6 +638,18 @@ function MainBoosterGeom({ partId, xray, checkerTex }) {
         <cylinderGeometry args={[0.46, 0.48, 1.55, 28]} />
         <HullMaterial color="#F8FAFC" xray={xray} />
       </mesh>
+      {aestroLogoTex && (
+        <>
+          <mesh position={[0, 0.1, 0.485]} rotation={[0, 0, 0]}>
+            <planeGeometry args={[0.5, 0.13]} />
+            <meshBasicMaterial map={aestroLogoTex} transparent opacity={xray ? 0.35 : 0.95} />
+          </mesh>
+          <mesh position={[0, 0.1, -0.485]} rotation={[0, Math.PI, 0]}>
+            <planeGeometry args={[0.5, 0.13]} />
+            <meshBasicMaterial map={aestroLogoTex} transparent opacity={xray ? 0.35 : 0.95} />
+          </mesh>
+        </>
+      )}
       {!xray && (
         <>
           <mesh position={[0, 0.5, 0]}>
@@ -707,6 +776,7 @@ export default function ModularRocket3D({
   heatGlow = false,
 }) {
   const checkerTex = useCheckerTexture();
+  const aestroLogoTex = useAestroAiDecalTexture();
   const {
     nosecone,
     avionicsPayload,
@@ -755,7 +825,7 @@ export default function ModularRocket3D({
         <group position={[0, boosterY, 0]} onClick={(e) => { e.stopPropagation(); onSelectSlot?.('mainBooster'); }}>
           {mainBooster ? (
             <AnimatedSlotDrop key={`mainBooster-${mainBooster.id}-${lastInstalledAt || 0}`} isJustInstalled={isFresh('mainBooster')}>
-              <MainBoosterGeom partId={mainBooster.id} xray={xrayMode} checkerTex={checkerTex} />
+              <MainBoosterGeom partId={mainBooster.id} xray={xrayMode} checkerTex={checkerTex} aestroLogoTex={aestroLogoTex} />
             </AnimatedSlotDrop>
           ) : (
             <GhostSlotBlueprint type="cylinder" height={boosterH} radius={0.46} isNext={nextEmptySlot === 'mainBooster'} isActive={activeSlot === 'mainBooster'} />
@@ -772,7 +842,7 @@ export default function ModularRocket3D({
         <group position={[0, tankY, 0]} onClick={(e) => { e.stopPropagation(); onSelectSlot?.('propellantTank'); }}>
           {propellantTank ? (
             <AnimatedSlotDrop key={`propellantTank-${lastInstalledSlot === 'propellantTank' ? lastInstalledAt : 'static'}`} isJustInstalled={isFresh('propellantTank')}>
-              <PropellantTankGeom fuelMass={fuelMass} propellantType={propellantType} xray={xrayMode} checkerTex={checkerTex} />
+              <PropellantTankGeom fuelMass={fuelMass} propellantType={propellantType} xray={xrayMode} checkerTex={checkerTex} aestroLogoTex={aestroLogoTex} />
             </AnimatedSlotDrop>
           ) : (
             <GhostSlotBlueprint type="cylinder" height={tankH} radius={0.46} isNext={nextEmptySlot === 'propellantTank'} isActive={activeSlot === 'propellantTank'} />
