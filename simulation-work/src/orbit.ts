@@ -1,6 +1,98 @@
 const EARTH_RADIUS_M = 6_371_000;
 const EARTH_MU = 3.986004418e14;
 
+export function calculateCircularVelocity(
+  altitudeKm: number
+): number {
+  if (!Number.isFinite(altitudeKm) || altitudeKm <= 0) {
+    throw new Error("Altitude must be greater than zero");
+  }
+
+  const radiusM = EARTH_RADIUS_M + altitudeKm * 1000;
+  return Math.sqrt(EARTH_MU / radiusM);
+}
+
+export interface OrbitalState {
+  radiusM: number;
+  velocityMs: number;
+  specificEnergyJPerKg: number;
+  semiMajorAxisM: number | null;
+  eccentricity: number | null;
+  perigeeAltitudeKm: number | null;
+  apogeeAltitudeKm: number | null;
+  escaped: boolean;
+}
+
+export function calculateOrbitalState(
+  altitudeKm: number,
+  velocityMs: number,
+): OrbitalState {
+  if (!Number.isFinite(altitudeKm) || altitudeKm <= 0) {
+    throw new Error("Altitude must be finite and positive");
+  }
+
+  if (!Number.isFinite(velocityMs) || velocityMs < 0) {
+    throw new Error("Velocity must be finite and non-negative");
+  }
+
+  const radiusM = EARTH_RADIUS_M + altitudeKm * 1000;
+
+  const specificEnergyJPerKg =
+    velocityMs ** 2 / 2 - EARTH_MU / radiusM;
+
+  const escaped = specificEnergyJPerKg >= 0;
+
+  if (escaped) {
+    return {
+      radiusM,
+      velocityMs,
+      specificEnergyJPerKg,
+      semiMajorAxisM: null,
+      eccentricity: null,
+      perigeeAltitudeKm: null,
+      apogeeAltitudeKm: null,
+      escaped: true,
+    };
+  }
+
+  const semiMajorAxisM =
+    -EARTH_MU / (2 * specificEnergyJPerKg);
+
+  const angularMomentum = radiusM * velocityMs;
+
+  const eccentricity = Math.sqrt(
+    Math.max(
+      0,
+      1 +
+        (2 *
+          specificEnergyJPerKg *
+          angularMomentum ** 2) /
+          EARTH_MU ** 2,
+    ),
+  );
+
+  const perigeeAltitudeKm =
+    (semiMajorAxisM * (1 - eccentricity) -
+      EARTH_RADIUS_M) /
+    1000;
+
+  const apogeeAltitudeKm =
+    (semiMajorAxisM * (1 + eccentricity) -
+      EARTH_RADIUS_M) /
+    1000;
+
+  return {
+    radiusM,
+    velocityMs,
+    specificEnergyJPerKg,
+    semiMajorAxisM,
+    eccentricity,
+    perigeeAltitudeKm,
+    apogeeAltitudeKm,
+    escaped: false,
+  };
+}
+
 export interface OrbitInput {
   altitudeKm: number;
   elapsedSeconds: number;
@@ -69,5 +161,129 @@ export function calculateOrbit(input: OrbitInput): OrbitResult {
     currentPhase,
     eclipseFraction,
     inEclipse
+  };
+}
+
+export interface EclipseInput {
+  position: {
+    x: number;
+    y: number;
+  };
+  sunDirection: {
+    x: number;
+    y: number;
+  };
+}
+
+export function isInEclipse(input: EclipseInput): boolean {
+  const { position, sunDirection } = input;
+
+  const sunMagnitude = Math.hypot(
+    sunDirection.x,
+    sunDirection.y,
+  );
+
+  if (sunMagnitude === 0) {
+    throw new Error("Sun direction cannot be zero");
+  }
+
+  const sunX = sunDirection.x / sunMagnitude;
+  const sunY = sunDirection.y / sunMagnitude;
+
+  // Positive projection means spacecraft is sunward.
+  const projection =
+    position.x * sunX + position.y * sunY;
+
+  if (projection >= 0) {
+    return false;
+  }
+
+  // Perpendicular distance from Earth-Sun axis.
+  const perpendicularDistance = Math.abs(
+    position.x * sunY - position.y * sunX,
+  );
+
+  return perpendicularDistance < EARTH_RADIUS_M;
+}
+
+export interface OrbitalElements {
+  specificEnergyJPerKg: number;
+  angularMomentumM2PerS: number;
+  eccentricity: number | null;
+  semiMajorAxisM: number | null;
+  perigeeAltitudeKm: number | null;
+  apogeeAltitudeKm: number | null;
+  escaped: boolean;
+}
+
+export function calculateOrbitalElementsFromVectors(
+  position: { x: number; y: number },
+  velocity: { x: number; y: number },
+): OrbitalElements {
+  const radius = Math.hypot(position.x, position.y);
+  const speedSquared =
+    velocity.x ** 2 + velocity.y ** 2;
+
+  if (!Number.isFinite(radius) || radius <= EARTH_RADIUS_M) {
+    throw new Error("Invalid orbital radius");
+  }
+
+  if (!Number.isFinite(speedSquared)) {
+    throw new Error("Invalid orbital velocity");
+  }
+
+  const specificEnergyJPerKg =
+    speedSquared / 2 - EARTH_MU / radius;
+
+  const angularMomentumM2PerS =
+    position.x * velocity.y -
+    position.y * velocity.x;
+
+  const escaped = specificEnergyJPerKg >= 0;
+
+  if (escaped) {
+    return {
+      specificEnergyJPerKg,
+      angularMomentumM2PerS,
+      eccentricity: null,
+      semiMajorAxisM: null,
+      perigeeAltitudeKm: null,
+      apogeeAltitudeKm: null,
+      escaped: true,
+    };
+  }
+
+  const semiMajorAxisM =
+    -EARTH_MU / (2 * specificEnergyJPerKg);
+
+  const eccentricity = Math.sqrt(
+    Math.max(
+      0,
+      1 +
+        (2 *
+          specificEnergyJPerKg *
+          angularMomentumM2PerS ** 2) /
+          EARTH_MU ** 2,
+    ),
+  );
+
+  const perigeeAltitudeKm =
+    (semiMajorAxisM * (1 - eccentricity) -
+      EARTH_RADIUS_M) /
+    1000;
+
+  const apogeeAltitudeKm =
+    (semiMajorAxisM * (1 + eccentricity) -
+      EARTH_RADIUS_M) /
+    1000;
+
+  return {
+    specificEnergyJPerKg,
+    angularMomentumM2PerS,
+    eccentricity,
+    semiMajorAxisM,
+    perigeeAltitudeKm,
+    apogeeAltitudeKm,
+    escaped: false,
   };
 }

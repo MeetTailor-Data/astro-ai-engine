@@ -1,257 +1,652 @@
-# 🚀 Astro AI Engine
+# Astro AI Engine
 
-> **A physics-grounded space mission design simulator, synthetic training data engine, and deep learning neural network pipeline with an interactive 3D command center.**
+A space mission design and simulation platform combining a TypeScript physics simulator, an interactive 3D frontend, synthetic mission data generation, and a machine learning prediction pipeline.
+
+Developed by **Astro Architects** for the NASA Space Apps Challenge 2026 — Space Mission Design Game.
+
+> **Project scope:** This is an educational mission simulation and design tool. Its physics models are simplified and are not intended for real spacecraft flight operations or NASA-certified engineering analysis.
 
 ---
 
-## 🌟 Architecture Overview
+## Table of Contents
 
-Astro AI Engine bridges **spaceflight physics simulation**, **machine learning modeling**, and **tactile 3D command controls**:
+- [Overview](#overview)
+- [NASA Space Apps Challenge Alignment](#nasa-space-apps-challenge-alignment)
+- [Architecture](#architecture)
+- [Features](#features)
+- [Technology Stack](#technology-stack)
+- [Repository Structure](#repository-structure)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Running the Project](#running-the-project)
+- [Simulation Engine](#simulation-engine)
+- [Machine Learning Pipeline](#machine-learning-pipeline)
+- [API Integration](#api-integration)
+- [Testing](#testing)
+- [Environment Variables](#environment-variables)
+- [Team Contribution Workflow](#team-contribution-workflow)
+- [Limitations](#limitations)
+- [Acknowledgments](#acknowledgments)
+
+---
+
+## Overview
+
+Astro AI Engine brings together three major components:
+
+| Component | Purpose |
+|---|---|
+| Simulation Engine | Simulates mission physics, spacecraft subsystems, and mission outcomes |
+| Interactive Frontend | Provides mission selection, rocket configuration, 3D visualization, and telemetry |
+| Machine Learning Pipeline | Generates synthetic mission datasets and trains models to predict mission outcomes |
+
+The project aims to make space mission design more interactive and understandable through simulation, visualization, and data-driven analysis.
+
+---
+
+## NASA Space Apps Challenge Alignment
+
+Astro AI Engine is developed for the **NASA Space Apps Challenge 2026 — Space Mission Design Game**.
+
+The project explores educational space mission design through simulation, visualization, and machine learning.
+
+### Mission Design Concepts
+
+The platform incorporates concepts related to:
+
+- **Launch Segment:** Rocket configuration, propulsion, fuel consumption, and mission launch simulation.
+- **Space Segment:** Orbital motion, spacecraft power, communications, and mission objectives.
+- **Ground Segment:** Mission telemetry and communication interfaces.
+- **User Segment:** Mission visualization, results, and scientific data presentation.
+
+### Trajectory and Mission Analysis
+
+The simulator incorporates simplified mission analysis concepts, including:
+
+- Orbital propagation and gravitational motion.
+- Atmospheric drag and orbital decay.
+- Propulsion and delta-v calculations.
+- Solar power generation and eclipse effects.
+- Mission objectives, validation, and scoring.
+
+### Machine Learning for Mission Analysis
+
+The machine learning pipeline generates synthetic mission datasets and trains predictive models to analyze mission outcomes.
+
+These predictions are experimental and are not substitutes for numerical physics simulation or real-world mission analysis.
+
+> The project is inspired by space mission design concepts and is not an official NASA, JPL, or Goddard Space Flight Center software product.
+
+---
+
+## Architecture
 
 ```text
-                               ┌──────────────────────────────────────────────┐
-                               │  simulation-work/ (TypeScript Engine)        │
-                               │  • Orbital mechanics & gravity wells         │
-                               │  • Power budgets (Solar irradiance + DoD)    │
-                               │  • Communication latency & data buffers      │
-                               │  • Mission scoring & failure constraints     │
-                               └──────────────────────┬───────────────────────┘
-                                                      │
-                       ┌──────────────────────────────┴──────────────────────────────┐
-                       │ npm run generate-data                                       │
-                       ▼                                                             ▼
-         ┌───────────────────────────┐                                 ┌───────────────────────────┐
-         │ data/raw/                 │                                 │ simulation-work/ API      │
-         │ simulation_training_data  │                                 │ (Express REST + SSE)      │
-         │ (5,000 mission rows)      │                                 │ http://localhost:3000     │
-         └─────────────┬─────────────┘                                 └─────────────┬─────────────┘
-                       │                                                             │
-                       ▼                                                             ▼
-         ┌───────────────────────────┐                                 ┌───────────────────────────┐
-         │ src/ (PyTorch Deep Learn) │                                 │ frontend/ (React 19)      │
-         │ • StandardScaler feature  │                                 │ • Three.js 3D Solar System│
-         │   normalization           │                                 │ • VAB Rocket Builder      │
-         │ • MissionPredictorNet     │                                 │ • Launch Control & Telemetry│
-         │ • Training & Evaluation   │                                 │ • Mission Outcome Scorecard│
-         │ ➔ models/best_model.pt   │                                 │ http://localhost:5173     │
-         └───────────────────────────┘                                 └───────────────────────────┘
+                    ASTRO AI ENGINE
+                           |
+          +----------------+----------------+
+          |                |                |
+          v                v                v
+   Simulation Engine   Frontend       ML Pipeline
+    TypeScript         React           Python
+          |                |                |
+          v                v                v
+    Mission Physics   3D Visuals     Training Data
+    Mission Runner    Rocket Builder  Model Training
+    Objectives        Telemetry       Evaluation
+    Scoring           Mission UI       Predictions
+          |
+          v
+     Express API
+    REST + SSE
+          |
+          v
+     Live Frontend
 ```
+
+### Component Interaction
+
+- The frontend provides mission configuration and interactive visualization.
+- The simulation engine calculates mission progression, subsystem states, and mission outcomes.
+- The Express API exposes simulator functionality to the frontend.
+- The synthetic dataset generator produces mission data for the ML pipeline.
+- The Python pipeline trains and evaluates predictive models using generated data.
 
 ---
 
-## 📁 Repository Structure
+## Features
+
+### Simulation Engine
+
+- Orbital propagation using Velocity Verlet integration.
+- Earth gravity and orbital motion.
+- Atmospheric drag and orbital decay.
+- Earth impact and mission failure handling.
+- Propulsion, fuel consumption, and delta-v calculations.
+- Solar power generation and eclipse handling.
+- Battery energy management.
+- Communication and data buffering.
+- Mission objectives and validation.
+- Mission scoring and grading.
+- Telemetry and simulation events.
+- Mission execution and completion tracking.
+
+### Interactive Frontend
+
+- Interactive 3D solar system visualization.
+- Mission selection interface.
+- Vehicle Assembly Building (VAB) rocket configuration.
+- Rocket staging and configuration.
+- Launch control interface.
+- Telemetry visualization.
+- Mission outcome and scorecard presentation.
+
+### Machine Learning
+
+- Synthetic mission training data generation.
+- Feature normalization.
+- PyTorch neural network training.
+- Validation and test evaluation.
+- Mission outcome prediction.
+- Classification metrics including accuracy, precision, recall, and F1-score.
+
+---
+
+## Technology Stack
+
+| Area | Technologies |
+|---|---|
+| Frontend | React 19, Vite |
+| 3D Graphics | Three.js, React Three Fiber, Drei |
+| Styling | Tailwind CSS |
+| Backend | Node.js, Express |
+| Simulation | TypeScript |
+| Validation | Zod |
+| Testing | Vitest |
+| Machine Learning | Python, PyTorch |
+| Data Processing | NumPy, Pandas, Scikit-learn |
+| Visualization | Matplotlib |
+| Version Control | Git, GitHub |
+
+---
+
+## Repository Structure
 
 ```text
 astro-ai-engine/
-├── configs/
-│   └── config.yaml               # ML hyperparameters (batch size, epochs, lr, seed)
-├── data/
-│   ├── raw/                      # Raw datasets & simulation CSVs (gitignored)
-│   └── processed/                # Normalized & split datasets
-├── frontend/                     # Interactive Web Application
-│   ├── src/
-│   │   ├── components/           # UI Screens (MissionSelect, RocketBuilder, LaunchControl)
-│   │   ├── components/three/     # Three.js 3D Scenes (Solar System, VAB Hangar, Flight)
-│   │   ├── context/              # Global state (MissionContext.jsx)
-│   │   ├── services/api.js       # Live backend connector + offline physics fallback
-│   │   └── utils/                # Rocket flight validation & audio synthesizer
-│   ├── package.json
-│   └── vite.config.js
-├── models/                       # Saved PyTorch checkpoints (best_model.pt)
-├── notebooks/                    # Jupyter notebooks for exploratory data analysis
-├── simulation-work/              # TypeScript Physics Simulation Engine
-│   ├── src/
-│   │   ├── engine.ts             # Core simulation stepper
-│   │   ├── battery.ts / power.ts # Solar array calculation & battery DoD
-│   │   ├── orbit.ts              # Orbital period, velocity, eclipse equation
-│   │   ├── custom-mission-runner.ts # Headless mission executor
-│   │   ├── generate-training-data.ts# 5,000-mission synthetic dataset generator
-│   │   └── api/server.ts         # Simulation REST & SSE stream server
-│   ├── tests/                    # Vitest unit test suite (17 test specs)
-│   └── package.json
-├── src/                          # Production Python ML Pipeline
-│   ├── dataset.py                # PyTorch Dataset, StandardScaler, stratified loaders
-│   ├── model.py                  # MissionPredictorNet (Deep MLP with BatchNorm + Dropout)
-│   ├── train.py                  # Training loop with validation & best-model checkpointing
-│   ├── evaluate.py               # Evaluation metrics (Accuracy, Precision, Recall, F1, ROC-AUC)
-│   └── utils.py                  # GPU/CUDA device selector, seed management, config loader
-├── requirements.txt              # Python ML dependencies
-├── README-WIRING.md              # In-depth simulation-to-ML wiring specifications
-├── README.md                     # Master project documentation
-└── .gitignore                    # Comprehensive ignores for Python, Node, data, and models
+|
++-- configs/
+|   +-- config.yaml
+|
++-- data/
+|   +-- raw/
+|   +-- processed/
+|
++-- frontend/
+|   +-- src/
+|   |   +-- components/
+|   |   |   +-- three/
+|   |   +-- context/
+|   |   +-- services/
+|   |   +-- utils/
+|   +-- package.json
+|   +-- vite.config.js
+|   +-- .gitignore
+|
++-- models/
+|
++-- notebooks/
+|
++-- simulation-work/
+|   +-- src/
+|   |   +-- engine.ts
+|   |   +-- orbit.ts
+|   |   +-- orbital-propagator.ts
+|   |   +-- atmospheric-drag.ts
+|   |   +-- battery.ts
+|   |   +-- power.ts
+|   |   +-- propulsion.ts
+|   |   +-- communications.ts
+|   |   +-- telemetry.ts
+|   |   +-- mission-runner.ts
+|   |   +-- generate-training-data.ts
+|   |   +-- api/
+|   |       +-- server.ts
+|   +-- tests/
+|   +-- package.json
+|   +-- tsconfig.json
+|
++-- src/
+|   +-- dataset.py
+|   +-- model.py
+|   +-- train.py
+|   +-- evaluate.py
+|   +-- utils.py
+|
++-- requirements.txt
++-- README.md
++-- README-WIRING.md
++-- .gitignore
 ```
 
 ---
 
-## ⚡ End-to-End Workflow Guide
+## Prerequisites
 
-Follow these sequential steps to run the complete pipeline from data generation through model training and interactive simulation.
+Install the following before running the project.
 
-### Prerequisites
+- **Node.js:** Compatible with the installed frontend and simulator dependencies.
+- **npm:** Included with Node.js.
+- **Python:** 3.10 or newer recommended.
+- **Git:** For repository management.
+- **NVIDIA GPU:** Optional; CUDA-compatible hardware can accelerate model training.
 
-* **Node.js** (v18+ recommended)
-* **Python** (v3.10 or v3.11)
-* **PyTorch** with CUDA (for NVIDIA GPUs) or CPU fallback:
-  ```bash
-  # For NVIDIA GPUs (CUDA 12.4+):
-  pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
+Check installations:
 
-  # Or lightweight CPU-only:
-  pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-  ```
-* Install remaining Python dependencies:
-  ```bash
-  pip install -r requirements.txt
-  ```
+```bash
+node --version
+npm --version
+python --version
+git --version
+```
 
 ---
 
-### Step 1: Generate Synthetic Mission Training Data
+## Installation
 
-The TypeScript simulation engine runs 5,000 realistic mission permutations across varying altitudes, battery capacities, solar arrays, power loads, and flight durations:
+Clone the repository:
+
+```bash
+git clone https://github.com/MeetTailor-Data/astro-ai-engine.git
+```
+
+Navigate into the repository:
+
+```bash
+cd astro-ai-engine
+```
+
+### Install Simulator Dependencies
 
 ```bash
 cd simulation-work
 npm install
-npm run generate-data
 ```
 
-* **Output**: Generated CSV at `data/raw/simulation_training_data.csv`
-* **Features generated**:
-  * `altitude_km`, `battery_capacity_wh`, `panel_area_m2`, `power_consumed_w`, `data_rate_mbps`, `duration_seconds`
-* **Targets generated**:
-  * `mission_success` (0 or 1), `total_score` (0–100), `grade` (S/A/B/C/D/F)
+### Install Frontend Dependencies
 
----
-
-### Step 2: Train the Deep Learning Model
-
-Return to the root directory and start the neural network training loop:
+Open another terminal:
 
 ```bash
-cd ..
-python -m src.train
+cd astro-ai-engine/frontend
+npm install
 ```
 
-* Reads parameters from `configs/config.yaml`.
-* Automatically detects and uses **NVIDIA CUDA GPU** (fallback to CPU).
-* Standardizes features using `StandardScaler`.
-* Trains `MissionPredictorNet` (Linear ➔ BatchNorm ➔ ReLU ➔ Dropout ➔ Linear).
-* Evaluates validation loss each epoch and checkpoints the best weights to `models/best_model.pt`.
+### Install Python Dependencies
 
----
-
-### Step 3: Evaluate Model Performance
-
-Run the evaluation suite on the held-out test split (20% of data):
+Return to the repository root:
 
 ```bash
-python -m src.evaluate
+cd astro-ai-engine
 ```
 
-Reports comprehensive classification metrics:
-* **Test Loss & Accuracy**
-* **Precision & Recall**
-* **F1-Score**
-* **ROC-AUC Score**
+Create a virtual environment:
+
+```bash
+python -m venv .venv
+```
+
+Activate it on Windows PowerShell:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+Install Python dependencies:
+
+```bash
+pip install -r requirements.txt
+```
 
 ---
 
-### Step 4: Launch the Physics Simulation API Server (Optional Backend)
+## Running the Project
 
-To power real-time server-side simulation telemetry:
+### 1. Run the Simulation Demo
+
+```bash
+cd simulation-work
+npm run demo
+```
+
+This executes the demonstration mission and prints mission progress, objective completion, and final scoring information.
+
+### 2. Start the Simulation API
 
 ```bash
 cd simulation-work
 npm run api
 ```
 
-* Runs on **`http://localhost:3000`**
-* Endpoints:
-  * `GET /api/health` — Simulator status check
-  * `GET /api/missions/profiles` — Preconfigured mission profiles
-  * `POST /api/missions/custom` — Validate and create custom missions
-  * `GET /api/missions/:id/stream` — Real-time Server-Sent Events (SSE) telemetry
+The API server runs at:
 
----
+```text
+http://localhost:3000
+```
 
-### Step 5: Start the 3D Interactive Frontend
+### 3. Start the Frontend
 
-In a separate terminal, launch the React 19 + Three.js application:
+Open a separate terminal:
 
 ```bash
 cd frontend
-npm install
 npm run dev
 ```
 
-* Open your browser at **`http://localhost:5173`**
-* **Features**:
-  * **3D Solar System View**: Interactive planetary orbit visualizer.
-  * **Vehicle Assembly Building (VAB)**: Modular rocket staging, mass calculation, and TWR verification.
-  * **Launch Control**: Real-time telemetry monitoring with audio synthesizer callouts.
-  * **Mission Debrief**: Flight score, performance breakdown, and letter grade certification.
-  * **Offline Resilience**: Automatically falls back to client-side physics simulation if the backend server is offline.
+Open:
+
+```text
+http://localhost:5173
+```
+
+### 4. Generate Synthetic Training Data
+
+```bash
+cd simulation-work
+npm run generate-data
+```
+
+The generated dataset is used by the Python machine learning pipeline.
+
+### 5. Train the ML Model
+
+From the repository root:
+
+```bash
+python -m src.train
+```
+
+### 6. Evaluate the ML Model
+
+```bash
+python -m src.evaluate
+```
 
 ---
 
-## 🛰️ NASA Space Apps Challenge 2026 Alignment & Systems Engineering
+## Simulation Engine
 
-Astro AI Engine is specifically engineered to address the **NASA Space Apps Challenge: Space Mission Design Game**, adhering directly to NASA's systems engineering standards, JPL development frameworks, and Goddard trajectory trade principles:
+The simulator is implemented in TypeScript under `simulation-work/`.
 
-### 1. The 4 Major NASA Mission Segments
-As outlined in NASA's *Design and Develop Science Missions (SP-2025/04)*:
-* **Launch Segment**: High-fidelity propulsion staging, TWR constraints, structural dynamic pressure limits ($q_{max}$ at Max-Q), and propellant mass ratios ($m_0 / m_f$).
-* **Space Segment**: Mission-specific spacecraft buses (LEO Weather Satellite, Lunar Surface Lander, Mars Sample Rover) with thermal protection, power subsystems, and scientific instruments.
-* **Ground Segment**: Pad-39A orbital integration facility, real-time command telemetry downlink, and tracking station communications.
-* **User Segment**: Science data product dissemination, flight recorder reconstruction, and Science RP (Research Points) monetization.
+### Physics and Subsystems
 
-### 2. NASA JPL Concept Maturity Levels (CML 1–4)
-The user progression directly mirrors the Jet Propulsion Laboratory (JPL) CML maturity framework:
-* **CML 1 (Mission Concept)**: Define scientific objectives and planetary destinations on the 3D Solar System Map.
-* **CML 2 (Feasibility & Trade Studies)**: Assess Delta-V requirements ($\Delta V \ge 9,400\text{ m/s}$), atmospheric scale heights, and liftoff margins ($TWR \ge 1.25$).
-* **CML 3 (Subsystem Point Design)**: Rapid assembly in the Vehicle Assembly Building (VAB), balancing structural dry mass, vacuum engine efficiency ($I_{sp}$), and EDL thermal shields.
-* **CML 4 (Verification & Trajectory Telemetry)**: Pad rollout, simulated countdown, orbital insertion verification, and black-box anomaly forensics.
+| Subsystem | Responsibility |
+|---|---|
+| Orbital Mechanics | Orbital motion, gravity, propagation |
+| Atmospheric Drag | Atmospheric resistance and orbital decay |
+| Propulsion | Fuel consumption and delta-v |
+| Power | Solar generation and spacecraft power consumption |
+| Battery | Energy storage and battery state |
+| Communications | Data transmission and buffering |
+| Telemetry | Mission state and subsystem monitoring |
+| Mission Runner | Mission execution and lifecycle |
+| Scoring | Objective evaluation and mission grading |
 
-### 3. Trajectory & Trade Study Realism (NASA GMAT & MDL Inspired)
-Inspired by NASA's **General Mission Analysis Tool (GMAT)** and the **Mission Design Lab (MDL)** at Goddard Space Flight Center:
-* Implements the Tsiolkovsky Rocket Equation: $\Delta V = I_{sp} \cdot g_0 \cdot \ln(m_0 / m_f)$
-* Non-linear atmospheric drag deceleration across varying planetary air densities ($101.3\text{ kPa}$ Earth vs $0.6\text{ kPa}$ Mars thin $\text{CO}_2$).
-* Multi-objective trade studies balancing project cost (\$M), launch reliability (%), payload mass capacity, and science yield.
+### Mission Execution
 
-### 4. Neural Surrogate Modeling (The Machine Learning Advantage)
-Traditional mission design requires computationally heavy numerical propagators. Astro AI Engine introduces a **PyTorch Deep Neural Surrogate (`AstroFlightPredictor`)**:
-* **Sub-Millisecond Flight Solvers**: Evaluates rocket configuration feasibility ($P_{success}$) instantaneously during interactive CAD assembly.
-* **Automated Failure Mode Classification**: Categorizes flight hazards before liftoff (`TWR_LOW`, `OVER_G`, `DELTAV_DEPLETED`, `THERMAL_BURNUP`, `FAIRING_FAIL`).
-* **Synthetic Training Generator**: Generates 5,000+ multi-planetary mission permutations to train robust regression and classification weights.
+The mission runner coordinates simulation steps, subsystem updates, telemetry, objective evaluation, and mission termination conditions.
 
----
+Mission outcomes may include:
 
-## 🤝 Team Contribution Workflow
+- Mission completion.
+- Mission duration reached.
+- Objective completion or failure.
+- Spacecraft subsystem failures.
+- Orbital failure conditions.
 
-To keep the repository clean and avoid merge conflicts:
+### Simulation Accuracy
 
-1. **Pull latest changes before starting work**:
-   ```bash
-   git pull origin main
-   ```
-2. **Create a branch for your feature**:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-3. **Commit with clear messages**:
-   ```bash
-   git add .
-   git commit -m "Brief description of changes"
-   ```
-4. **Push your branch & open a Pull Request**:
-   ```bash
-   git push origin feature/your-feature-name
-   ```
+The engine uses simplified physics models suitable for interactive educational simulation.
+
+It is not a replacement for high-fidelity orbital analysis software or professional spacecraft mission design tools.
 
 ---
 
-## 📜 License & Credits
+## Machine Learning Pipeline
 
-Built for the **NASA International Space Apps Challenge / Space Mission Design Game**.  
-Maintained by the **Astro AI Engine Team**.
+The machine learning pipeline is implemented in Python.
+
+### Pipeline
+
+```text
+Simulation Engine
+       |
+       v
+Synthetic Dataset Generation
+       |
+       v
+Data Preprocessing
+       |
+       v
+Model Training
+       |
+       v
+Validation
+       |
+       v
+Model Evaluation
+       |
+       v
+Mission Outcome Prediction
+```
+
+### Main Files
+
+| File | Responsibility |
+|---|---|
+| `src/dataset.py` | Dataset loading and preprocessing |
+| `src/model.py` | Neural network architecture |
+| `src/train.py` | Model training |
+| `src/evaluate.py` | Model evaluation |
+| `src/utils.py` | Configuration, reproducibility, device selection |
+| `configs/config.yaml` | Training configuration |
+| `simulation-work/src/generate-training-data.ts` | Synthetic dataset generation |
+
+### Model Training
+
+The pipeline uses PyTorch to train a neural network on generated mission data.
+
+Training includes:
+
+- Feature normalization.
+- Training and validation splits.
+- Model optimization.
+- Validation loss monitoring.
+- Model checkpointing.
+
+### Model Evaluation
+
+The evaluation pipeline reports classification metrics such as:
+
+- Accuracy
+- Precision
+- Recall
+- F1-score
+- ROC-AUC, when supported by the evaluation task and dataset
+
+> Machine learning predictions are learned from generated data. They are not guaranteed mission outcomes or independent physics calculations.
+
+For the detailed simulation-to-ML data flow, see [README-WIRING.md](README-WIRING.md).
+
+---
+
+## API Integration
+
+The Express API is implemented under:
+
+```text
+simulation-work/src/api/server.ts
+```
+
+Start it with:
+
+```bash
+cd simulation-work
+npm run api
+```
+
+Base URL:
+
+```text
+http://localhost:3000
+```
+
+### API Endpoints
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/api/health` | Server health check |
+| GET | `/api/missions/profiles` | Retrieve mission profiles |
+| POST | `/api/missions/custom` | Validate and create custom missions |
+| GET | `/api/missions/:id/stream` | Stream mission telemetry using SSE |
+
+### Server-Sent Events
+
+The mission stream endpoint uses Server-Sent Events (SSE) to deliver telemetry updates to connected clients.
+
+The frontend API integration is located at:
+
+```text
+frontend/src/services/api.js
+```
+
+For request payloads, response structures, and integration details, consult the API implementation and [README-WIRING.md](README-WIRING.md).
+
+---
+
+## Testing
+
+The simulator uses Vitest.
+
+Run tests:
+
+```bash
+cd simulation-work
+npm test
+```
+
+Run tests in watch mode:
+
+```bash
+npm run test:watch
+```
+
+Run TypeScript type checking:
+
+```bash
+npm run typecheck
+```
+
+Run the mission demo:
+
+```bash
+npm run demo
+```
+
+Frontend production build:
+
+```bash
+cd frontend
+npm run build
+```
+
+Before submitting simulator changes, run type checking and the complete simulator test suite.
+
+---
+
+## Environment Variables
+
+Do not commit secrets or private environment configuration.
+
+Environment files should remain local. If a component requires environment variables, document their names in an `.env.example` file without including real credentials.
+
+---
+
+## Team Contribution Workflow
+
+Astro AI Engine is developed collaboratively.
+
+### 1. Update Your Local Branch
+
+```bash
+git pull origin main
+```
+
+### 2. Create a Feature Branch
+
+```bash
+git checkout -b feature/your-feature-name
+```
+
+### 3. Make and Test Your Changes
+
+Simulator:
+
+```bash
+cd simulation-work
+npm run typecheck
+npm test
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm run build
+```
+
+### 4. Stage Only Your Changes
+
+Do not blindly stage the entire repository.
+
+```bash
+git add simulation-work/src/your-file.ts
+git add simulation-work/tests/your-file.test.ts
+```
+
+### 5. Commit
+
+```bash
+git commit -m "feat: describe your change"
+```
+
+### 6. Push
+
+```bash
+git push origin feature/your-feature-name
+```
+
+### 7. Open a Pull Request
+
+Review changes before merging into the main branch.
+
+---
+
+## Limitations
+
+- Orbital and subsystem physics use simplified models.
+- Results depend on mission configuration and simulation assumptions.
+- Synthetic training data does not represent a complete real-world mission dataset.
+- ML predictions may not generalize beyond the training data.
+- Visualization is intended for interactive mission design and educational use.
+- The platform is not flight-certified or NASA-certified software.
+
+---
+
+## Acknowledgments
+
+Developed by **Astro Architects** for the **NASA International Space Apps Challenge 2026**.
+
+Challenge: **Space Mission Design Game**
+
+NASA Space Apps Challenge is an international hackathon. Astro AI Engine is an independent team project and is not an official NASA operational system.
