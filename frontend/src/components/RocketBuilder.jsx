@@ -857,7 +857,7 @@ export default function RocketBuilder() {
                   ROLLING OUT...
                 </>
               ) : allSixInstalled ? (
-                'CONFIRM & ROLLOUT TO LAUNCHPAD >>'
+                'CML-4 // CONFIRM & ROLLOUT TO LAUNCHPAD >>'
               ) : (
                 `ATTACH ALL 6 PARTS (${installedCount}/6) TO ROLLOUT`
               )}

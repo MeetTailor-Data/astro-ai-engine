@@ -284,7 +284,7 @@ export default function CommandCenter({ inspectedSlotKey, setInspectedSlotKey })
         >
           <div>
             <span className="telemetry-num block text-[10px] font-extrabold tracking-[0.22em] text-[#050811]/85">
-              STAGE 01 // PLANETARY CONTRACTS
+              STAGE 01 // CML-1: MISSION CONCEPT
             </span>
             <span className="font-display text-xs font-black tracking-wider text-white drop-shadow sm:text-sm">
               OPEN SOLAR SYSTEM MISSION MAP &gt;&gt;

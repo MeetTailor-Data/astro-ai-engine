@@ -543,7 +543,7 @@ export default function MissionSelect({ solarOverviewMode, setSolarOverviewMode 
                   onClick={handleEnterVab}
                   className="game-btn-slanted thruster-glow group flex w-full items-center justify-center gap-2 border-2 border-[#FFB347] bg-gradient-to-r from-[#FF5500] via-[#FF6B1A] to-[#F59E0B] px-5 py-3 text-center font-display text-xs font-black tracking-wider text-white sm:text-sm"
                 >
-                  <span>ENTER VEHICLE ASSEMBLY BUILDING (VAB) &gt;&gt;</span>
+                  <span>STAGE 02 // CML-2 &rarr; ENTER VAB (POINT DESIGN) &gt;&gt;</span>
                   <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </button>
               </div>

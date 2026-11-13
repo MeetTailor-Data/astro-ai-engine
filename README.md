@@ -195,6 +195,38 @@ npm run dev
 
 ---
 
+## 🛰️ NASA Space Apps Challenge 2026 Alignment & Systems Engineering
+
+Astro AI Engine is specifically engineered to address the **NASA Space Apps Challenge: Space Mission Design Game**, adhering directly to NASA's systems engineering standards, JPL development frameworks, and Goddard trajectory trade principles:
+
+### 1. The 4 Major NASA Mission Segments
+As outlined in NASA's *Design and Develop Science Missions (SP-2025/04)*:
+* **Launch Segment**: High-fidelity propulsion staging, TWR constraints, structural dynamic pressure limits ($q_{max}$ at Max-Q), and propellant mass ratios ($m_0 / m_f$).
+* **Space Segment**: Mission-specific spacecraft buses (LEO Weather Satellite, Lunar Surface Lander, Mars Sample Rover) with thermal protection, power subsystems, and scientific instruments.
+* **Ground Segment**: Pad-39A orbital integration facility, real-time command telemetry downlink, and tracking station communications.
+* **User Segment**: Science data product dissemination, flight recorder reconstruction, and Science RP (Research Points) monetization.
+
+### 2. NASA JPL Concept Maturity Levels (CML 1–4)
+The user progression directly mirrors the Jet Propulsion Laboratory (JPL) CML maturity framework:
+* **CML 1 (Mission Concept)**: Define scientific objectives and planetary destinations on the 3D Solar System Map.
+* **CML 2 (Feasibility & Trade Studies)**: Assess Delta-V requirements ($\Delta V \ge 9,400\text{ m/s}$), atmospheric scale heights, and liftoff margins ($TWR \ge 1.25$).
+* **CML 3 (Subsystem Point Design)**: Rapid assembly in the Vehicle Assembly Building (VAB), balancing structural dry mass, vacuum engine efficiency ($I_{sp}$), and EDL thermal shields.
+* **CML 4 (Verification & Trajectory Telemetry)**: Pad rollout, simulated countdown, orbital insertion verification, and black-box anomaly forensics.
+
+### 3. Trajectory & Trade Study Realism (NASA GMAT & MDL Inspired)
+Inspired by NASA's **General Mission Analysis Tool (GMAT)** and the **Mission Design Lab (MDL)** at Goddard Space Flight Center:
+* Implements the Tsiolkovsky Rocket Equation: $\Delta V = I_{sp} \cdot g_0 \cdot \ln(m_0 / m_f)$
+* Non-linear atmospheric drag deceleration across varying planetary air densities ($101.3\text{ kPa}$ Earth vs $0.6\text{ kPa}$ Mars thin $\text{CO}_2$).
+* Multi-objective trade studies balancing project cost (\$M), launch reliability (%), payload mass capacity, and science yield.
+
+### 4. Neural Surrogate Modeling (The Machine Learning Advantage)
+Traditional mission design requires computationally heavy numerical propagators. Astro AI Engine introduces a **PyTorch Deep Neural Surrogate (`AstroFlightPredictor`)**:
+* **Sub-Millisecond Flight Solvers**: Evaluates rocket configuration feasibility ($P_{success}$) instantaneously during interactive CAD assembly.
+* **Automated Failure Mode Classification**: Categorizes flight hazards before liftoff (`TWR_LOW`, `OVER_G`, `DELTAV_DEPLETED`, `THERMAL_BURNUP`, `FAIRING_FAIL`).
+* **Synthetic Training Generator**: Generates 5,000+ multi-planetary mission permutations to train robust regression and classification weights.
+
+---
+
 ## 🤝 Team Contribution Workflow
 
 To keep the repository clean and avoid merge conflicts:
