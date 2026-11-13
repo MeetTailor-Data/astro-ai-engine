@@ -1,9 +1,7 @@
 import {
   calculateOrbit,
   calculateOrbitalElementsFromVectors,
-  calculateOrbitalState,
   type OrbitalElements,
-  type OrbitalState,
 } from "./orbit.js";
 import { calculatePower } from "./power.js";
 import { calculateBattery } from "./battery.js";
@@ -51,7 +49,6 @@ export interface SimulationConfig {
 
 export interface Telemetry {
   orbitalVelocityMs: number;
-  orbitalState: OrbitalState;
   orbitalElements: OrbitalElements;
   positionXM: number;
   positionYM: number;
@@ -247,15 +244,14 @@ export class SimulationEngine {
 
     const telemetry: Telemetry = {
       orbitalVelocityMs: this.physicalOrbitalState.speedMs,
-      orbitalState: calculateOrbitalState(
-        this.physicalOrbitalState.altitudeKm,
-        this.physicalOrbitalState.speedMs,
-      ),
       positionXM: this.physicalOrbitalState.position.x,
       positionYM: this.physicalOrbitalState.position.y,
       velocityXMs: this.physicalOrbitalState.velocity.x,
       velocityYMs: this.physicalOrbitalState.velocity.y,
-      orbitalElements: this.calculateCurrentOrbitalElements(),
+      orbitalElements: calculateOrbitalElementsFromVectors(
+        this.physicalOrbitalState.position,
+        this.physicalOrbitalState.velocity,
+      ),
       simulationTimeSeconds: nextTime,
       orbitalPhase: orbit.currentPhase,
       inEclipse: orbit.inEclipse,
@@ -346,13 +342,6 @@ export class SimulationEngine {
     this.engineBurning = result.consumedPropellantKg > 0;
 
     return result;
-  }
-
-  private calculateCurrentOrbitalElements(): OrbitalElements {
-    return calculateOrbitalElementsFromVectors(
-      this.physicalOrbitalState.position,
-      this.physicalOrbitalState.velocity,
-    );
   }
 
   getCurrentTime(): number {
