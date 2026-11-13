@@ -35,6 +35,52 @@ function getMissionRewards(selectedMission, willLand) {
   return { fundsDelta: 180, scienceDelta: 450, supportDelta: 15 };
 }
 
+/**
+ * Computes a 0-100 score and S/A/B/C/D/F grade from the mission result.
+ * Uses backend score/grade if available, otherwise derives from physics & constraints.
+ */
+function computeScoreAndGrade(missionResult, validation, willLand, rewards) {
+  // Prefer backend-provided score/grade
+  if (typeof missionResult?.score === 'number') {
+    const s = Math.round(missionResult.score);
+    return { score: s, grade: missionResult.grade || scoreToGrade(s) };
+  }
+  if (typeof missionResult?.totalScore === 'number') {
+    const s = Math.round(missionResult.totalScore);
+    return { score: s, grade: missionResult.grade || scoreToGrade(s) };
+  }
+
+  if (!willLand) {
+    const failCount = validation.failedConstraints?.length || 1;
+    const baseScore = Math.max(5, 30 - failCount * 10);
+    return { score: baseScore, grade: scoreToGrade(baseScore) };
+  }
+
+  // Success: score based on reliability + margin over constraints
+  const reliability = validation.physics?.reliabilityPct ?? 72;
+  const dvMargin = Math.min(30, Math.max(0, (validation.physics?.deltaV ?? 0) - (rewards.scienceDelta > 1000 ? 15800 : rewards.scienceDelta > 700 ? 12200 : 9400)) / 100);
+  const score = Math.min(100, Math.round(reliability * 0.7 + dvMargin * 0.3 + 5));
+  return { score, grade: scoreToGrade(score) };
+}
+
+function scoreToGrade(score) {
+  if (score >= 90) return 'S';
+  if (score >= 80) return 'A';
+  if (score >= 65) return 'B';
+  if (score >= 50) return 'C';
+  if (score >= 30) return 'D';
+  return 'F';
+}
+
+const GRADE_COLORS = {
+  S: 'text-yellow-300',
+  A: 'text-emerald-300',
+  B: 'text-cyan-300',
+  C: 'text-amber-300',
+  D: 'text-orange-400',
+  F: 'text-rose-400',
+};
+
 export default function MissionOutcome() {
   const {
     selectedMission,
@@ -69,6 +115,11 @@ export default function MissionOutcome() {
   const rewards = useMemo(
     () => getMissionRewards(selectedMission, willLand),
     [selectedMission, willLand]
+  );
+
+  const scoreGrade = useMemo(
+    () => computeScoreAndGrade(missionResult, validation, willLand, rewards),
+    [missionResult, validation, willLand, rewards]
   );
 
   const telemetryStats = useMemo(() => {
@@ -222,6 +273,19 @@ export default function MissionOutcome() {
           <ChamferPanel className="pointer-events-auto w-full lg:w-[340px]" innerClassName="p-3.5 space-y-3">
             <div className="border-b border-cyan-400/20 pb-1.5 font-display text-xs font-extrabold tracking-wider text-[#00F0FF]">
               REWARDS &amp; TELEMETRY SCORECARD
+            </div>
+
+            {/* Mission Score & Grade */}
+            <div className="flex items-center justify-between rounded border border-cyan-400/20 bg-slate-900/75 px-3 py-2">
+              <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400">MISSION SCORE</div>
+              <div className="flex items-center gap-3">
+                <div className="telemetry-num text-sm font-extrabold text-white">
+                  {scoreGrade.score}<span className="text-[10px] font-normal text-slate-400"> / 100</span>
+                </div>
+                <div className={`telemetry-num text-xl font-black ${GRADE_COLORS[scoreGrade.grade] ?? 'text-white'}`}>
+                  {scoreGrade.grade}
+                </div>
+              </div>
             </div>
 
             {/* Agency Rewards */}
