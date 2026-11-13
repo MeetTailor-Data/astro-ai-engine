@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import {
   AlertTriangle,
@@ -12,74 +12,30 @@ import {
 } from 'lucide-react';
 import { MISSION_STEPS, useMission } from '../context/MissionContext';
 import { validateRocketForMission } from '../utils/missionPhysics';
+import {
+  computeResources,
+  computeScore,
+  loadLeaderboard,
+  MISSION_HERITAGE,
+  saveRun,
+} from '../utils/missionResources';
 import { soundEngine } from '../utils/soundEffects';
 import { ChamferPanel, CrewPortrait } from './HudFrame';
 import { TactileButton } from './TactileUI';
 import OutcomeCinematicScene from './three/OutcomeCinematicScene';
 
-function getMissionRewards(selectedMission, willLand) {
+function getMissionRewards(selectedMission, willLand, resources) {
   const id = selectedMission?.id || 'leo-sat-01';
-  if (!willLand) {
-    return {
-      fundsDelta: 0,
-      scienceDelta: 50, // Black-box crash telemetry
-      supportDelta: -10,
-    };
-  }
-  if (id === 'mars-rover-03') {
-    return { fundsDelta: 420, scienceDelta: 1200, supportDelta: 15 };
-  }
-  if (id === 'lunar-lander-02') {
-    return { fundsDelta: 280, scienceDelta: 750, supportDelta: 15 };
-  }
-  return { fundsDelta: 180, scienceDelta: 450, supportDelta: 15 };
+  if (!willLand) return { fundsDelta: 0, scienceDelta: 50, supportDelta: -10 };
+  const savings = Math.max(0, Math.round(((resources?.capM ?? 150) - (resources?.costM ?? 0)) * 0.25));
+  const base =
+    id === 'mars-rover-03'
+      ? { fundsDelta: 420, scienceDelta: 1200 }
+      : id === 'lunar-lander-02'
+      ? { fundsDelta: 280, scienceDelta: 750 }
+      : { fundsDelta: 180, scienceDelta: 450 };
+  return { ...base, fundsDelta: base.fundsDelta + savings, supportDelta: 15 };
 }
-
-/**
- * Computes a 0-100 score and S/A/B/C/D/F grade from the mission result.
- * Uses backend score/grade if available, otherwise derives from physics & constraints.
- */
-function computeScoreAndGrade(missionResult, validation, willLand, rewards) {
-  // Prefer backend-provided score/grade
-  if (typeof missionResult?.score === 'number') {
-    const s = Math.round(missionResult.score);
-    return { score: s, grade: missionResult.grade || scoreToGrade(s) };
-  }
-  if (typeof missionResult?.totalScore === 'number') {
-    const s = Math.round(missionResult.totalScore);
-    return { score: s, grade: missionResult.grade || scoreToGrade(s) };
-  }
-
-  if (!willLand) {
-    const failCount = validation.failedConstraints?.length || 1;
-    const baseScore = Math.max(5, 30 - failCount * 10);
-    return { score: baseScore, grade: scoreToGrade(baseScore) };
-  }
-
-  // Success: score based on reliability + margin over constraints
-  const reliability = validation.physics?.reliabilityPct ?? 72;
-  const dvMargin = Math.min(30, Math.max(0, (validation.physics?.deltaV ?? 0) - (rewards.scienceDelta > 1000 ? 15800 : rewards.scienceDelta > 700 ? 12200 : 9400)) / 100);
-  const score = Math.min(100, Math.round(reliability * 0.7 + dvMargin * 0.3 + 5));
-  return { score, grade: scoreToGrade(score) };
-}
-
-function scoreToGrade(score) {
-  if (score >= 90) return 'S';
-  if (score >= 80) return 'A';
-  if (score >= 65) return 'B';
-  if (score >= 50) return 'C';
-  if (score >= 30) return 'D';
-  return 'F';
-}
-
-const GRADE_COLORS = {
-  S: 'text-yellow-300',
-  A: 'text-emerald-300',
-  B: 'text-cyan-300',
-  C: 'text-amber-300',
-  D: 'text-orange-400',
-  F: 'text-rose-400',
-};
 
 export default function MissionOutcome() {
   const {
@@ -108,19 +64,40 @@ export default function MissionOutcome() {
   const failedConstraints =
     missionResult?.failedConstraints?.length > 0
       ? missionResult.failedConstraints
-      : validation.failedConstraints;
+      : (validation?.failedConstraints || []);
   const primaryFailure = missionResult?.primaryFailure || failedConstraints[0] || null;
   const failedSlotKey = primaryFailure?.slotKey || 'mainBooster';
 
+  const resources = useMemo(
+    () => computeResources(rocketConfig, selectedMission),
+    [rocketConfig, selectedMission]
+  );
+  const score = useMemo(
+    () => computeScore({ physics: validation.physics, resources, mission: selectedMission, willLand }),
+    [validation, resources, selectedMission, willLand]
+  );
+  const heritage = MISSION_HERITAGE[selectedMission?.id] || MISSION_HERITAGE['leo-sat-01'];
   const rewards = useMemo(
-    () => getMissionRewards(selectedMission, willLand),
-    [selectedMission, willLand]
+    () => getMissionRewards(selectedMission, willLand, resources),
+    [selectedMission, willLand, resources]
   );
 
-  const scoreGrade = useMemo(
-    () => computeScoreAndGrade(missionResult, validation, willLand, rewards),
-    [missionResult, validation, willLand, rewards]
-  );
+  const [leaderboard, setLeaderboard] = useState(() => loadLeaderboard());
+  const runSavedRef = useRef(false);
+  useEffect(() => {
+    if (runSavedRef.current) return;
+    runSavedRef.current = true;
+    setLeaderboard(
+      saveRun({
+        mission: selectedMission?.name ?? 'Unknown',
+        score: score.total,
+        grade: score.grade,
+        landed: willLand,
+        costM: resources.costM,
+      })
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const telemetryStats = useMemo(() => {
     const peakAlt =
@@ -275,17 +252,23 @@ export default function MissionOutcome() {
               REWARDS &amp; TELEMETRY SCORECARD
             </div>
 
-            {/* Mission Score & Grade */}
-            <div className="flex items-center justify-between rounded border border-cyan-400/20 bg-slate-900/75 px-3 py-2">
-              <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400">MISSION SCORE</div>
-              <div className="flex items-center gap-3">
-                <div className="telemetry-num text-sm font-extrabold text-white">
-                  {scoreGrade.score}<span className="text-[10px] font-normal text-slate-400"> / 100</span>
-                </div>
-                <div className={`telemetry-num text-xl font-black ${GRADE_COLORS[scoreGrade.grade] ?? 'text-white'}`}>
-                  {scoreGrade.grade}
+            {/* NASA Mission Score & Evaluation Grade */}
+            <div className="flex items-center justify-between rounded border border-amber-400/30 bg-slate-950/75 p-2">
+              <div>
+                <div className="text-[9px] font-bold text-slate-400">MISSION SCORE</div>
+                <div className="telemetry-num text-xl font-extrabold text-white">
+                  {score.total} <span className="text-[10px] font-normal text-slate-400">/ 1000</span>
                 </div>
               </div>
+              <div className="font-display text-4xl font-black text-amber-300">{score.grade}</div>
+            </div>
+            <div className="grid grid-cols-5 gap-1 text-center text-[9px]">
+              {Object.entries(score.breakdown).map(([k, v]) => (
+                <div key={k} className="rounded bg-slate-900/75 p-1">
+                  <div className="uppercase text-slate-400 text-[8px]">{k}</div>
+                  <div className="telemetry-num font-bold text-white">{v}</div>
+                </div>
+              ))}
             </div>
 
             {/* Agency Rewards */}
@@ -350,6 +333,21 @@ export default function MissionOutcome() {
                 </div>
               </div>
             </div>
+
+            {/* Local Device Leaderboard */}
+            <div className="rounded border border-white/10 bg-slate-900/75 p-2 text-[10px]">
+              <div className="mb-1 font-bold tracking-wider text-[#00F0FF]">LEADERBOARD (THIS DEVICE)</div>
+              {leaderboard.length === 0 ? (
+                <div className="text-slate-400 italic">No mission records logged yet.</div>
+              ) : (
+                leaderboard.slice(0, 5).map((r, i) => (
+                  <div key={i} className="flex justify-between text-slate-200">
+                    <span className="truncate">{i + 1}. {r.mission}</span>
+                    <span className="telemetry-num font-bold text-amber-300">{r.score} · {r.grade}</span>
+                  </div>
+                ))
+              )}
+            </div>
           </ChamferPanel>
 
           {/* RIGHT: AI FLIGHT RECORDER & ENGINEER MAYA'S DIAGNOSTIC REPORT */}
@@ -364,6 +362,12 @@ export default function MissionOutcome() {
                   {willLand ? '6-Stage Nominal Flight Synthesis' : 'Root-Cause Failure Reconstruction'}
                 </div>
               </div>
+            </div>
+
+            {/* NASA Heritage Match Line */}
+            <div className="rounded border border-cyan-400/30 bg-cyan-950/30 p-2 text-[11px] text-cyan-100">
+              <span className="font-bold text-[#00F0FF]">NASA HERITAGE: </span>
+              {heritage.name}. {heritage.note}
             </div>
 
             {!willLand ? (

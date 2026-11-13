@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { MISSION_STEPS, useMission } from '../context/MissionContext';
 import { createCustomMission } from '../services/api';
+import { computeResources } from '../utils/missionResources';
 import { computeRocketPhysics, validateRocketForMission } from '../utils/missionPhysics';
 import { soundEngine } from '../utils/soundEffects';
 import { CrewPortrait } from './HudFrame';
@@ -139,6 +140,31 @@ const SLOT_PARTS_MAP = {
 
 const TIER_LABELS = ['LV I', 'LV II', 'LV III', 'LV IV'];
 
+function ResourceBlock({ title, status, ok, rows, barPct, barBad }) {
+  return (
+    <div className="mb-3 border-b border-blue-300/20 pb-2.5">
+      <div className="flex items-center justify-between text-[11px] font-bold text-amber-300">
+        <span>{title}</span>
+        <span className={ok ? 'text-emerald-300' : 'text-rose-300'}>{status}</span>
+      </div>
+      {rows.map(([label, value]) => (
+        <div key={label} className="mt-1 flex justify-between text-xs">
+          <span className="text-blue-200">{label}</span>
+          <span className="telemetry-num font-bold">{value}</span>
+        </div>
+      ))}
+      {barPct != null && (
+        <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-blue-950">
+          <div
+            className={`h-full transition-all ${barBad ? 'bg-rose-400' : 'bg-amber-400'}`}
+            style={{ width: `${Math.max(0, Math.min(100, barPct))}%` }}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main RocketBuilder Component ─────────────────────────────────────────────
 
 export default function RocketBuilder() {
@@ -186,6 +212,11 @@ export default function RocketBuilder() {
 
   const validationResult = useMemo(
     () => validateRocketForMission(rocketConfig, selectedMission),
+    [rocketConfig, selectedMission]
+  );
+
+  const resources = useMemo(
+    () => computeResources(rocketConfig, selectedMission),
     [rocketConfig, selectedMission]
   );
 
@@ -313,7 +344,7 @@ export default function RocketBuilder() {
   );
 
   const handleLaunch = useCallback(async () => {
-    if (!allSixInstalled || isLaunching) return;
+    if (!allSixInstalled || isLaunching || resources.overBudget) return;
     soundEngine.playRolloutSiren();
     setIsLaunching(true);
     setLaunchError(null);
@@ -343,6 +374,7 @@ export default function RocketBuilder() {
   }, [
     allSixInstalled,
     isLaunching,
+    resources.overBudget,
     selectedMission,
     rocketConfig,
     fuelMass,
@@ -773,6 +805,38 @@ export default function RocketBuilder() {
               </div>
             </div>
 
+            <ResourceBlock
+              title="BUDGET & SCHEDULE"
+              status={resources.overBudget ? 'OVER CAP' : 'WITHIN CAP'}
+              ok={!resources.overBudget}
+              rows={[
+                ['Cost', `$${resources.costM}M / $${resources.capM}M`],
+                ['Schedule', `${resources.time.months} / ${resources.time.deadline} mo${resources.time.late ? ' (LATE)' : ''}`],
+              ]}
+              barPct={(resources.costM / resources.capM) * 100}
+              barBad={resources.overBudget}
+            />
+            <ResourceBlock
+              title="POWER"
+              status={resources.power.marginPct < 0 ? 'DEFICIT' : resources.power.marginPct < 8 ? 'TIGHT' : 'NOMINAL'}
+              ok={resources.power.marginPct >= 8}
+              rows={[
+                ['Supply / Demand', `${resources.power.genW} / ${resources.power.useW} W`],
+                ['Margin', `${resources.power.marginPct}%`],
+              ]}
+              barPct={resources.power.genW ? (resources.power.useW / resources.power.genW) * 100 : 0}
+              barBad={resources.power.marginPct < 0}
+            />
+            <ResourceBlock
+              title="DATA & COMMS"
+              status={resources.data.marginDb < 0 ? 'LINK DEFICIT' : 'NOMINAL'}
+              ok={resources.data.marginDb >= 0}
+              rows={[
+                ['Data / Downlink', `${resources.data.genMbps} / ${resources.data.linkMbps} Mbps`],
+                ['Link margin', `${resources.data.marginDb} dB`],
+              ]}
+            />
+
             {/* Chief Engineer Maya — Live Constraint Solver Guide */}
             {(() => {
               const allPassed = validationResult.willLand && allSixInstalled;
@@ -847,7 +911,7 @@ export default function RocketBuilder() {
             <TactileButton
               variant="orange"
               hazard
-              disabled={!allSixInstalled || isLaunching}
+              disabled={!allSixInstalled || isLaunching || resources.overBudget}
               onClick={handleLaunch}
               className="w-full py-3 text-xs"
             >
@@ -856,6 +920,8 @@ export default function RocketBuilder() {
                   <RefreshCw className="h-4 w-4 animate-spin" />
                   ROLLING OUT...
                 </>
+              ) : resources.overBudget ? (
+                `OVER BUDGET BY $${(resources.costM - resources.capM).toFixed(1)}M`
               ) : allSixInstalled ? (
                 'CML-4 // CONFIRM & ROLLOUT TO LAUNCHPAD >>'
               ) : (
