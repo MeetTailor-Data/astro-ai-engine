@@ -10,6 +10,12 @@ import { calculateCommunications } from "./communications.js";
 import { EventScheduler } from "./events.js";
 import { TelemetryStore } from "./telemetry.js";
 import { calculatePropulsion } from "./propulsion.js";
+import {
+  createCircularOrbitalState,
+  propagateOrbit,
+  calculateGravity,
+  type OrbitalState2D,
+} from "./orbital-propagator.js";
 
 export type BurnDirection = "PROGRADE" | "RETROGRADE";
 export interface PropulsionConfig {
@@ -45,6 +51,10 @@ export interface SimulationConfig {
 export interface Telemetry {
   orbitalVelocityMs: number;
   orbitalState: OrbitalState;
+  positionXM: number;
+  positionYM: number;
+  velocityXMs: number;
+  velocityYMs: number;
   simulationTimeSeconds: number;
   orbitalPhase: number;
   inEclipse: boolean;
@@ -147,6 +157,7 @@ function validateConfig(config: SimulationConfig): void {
 export class SimulationEngine {
   private orbitalVelocityMs: number;
   private orbitalState: OrbitalState;
+  private physicalOrbitalState: OrbitalState2D;
   private readonly config: SimulationConfig;
   private readonly scheduler = new EventScheduler();
   private readonly telemetry = new TelemetryStore();
@@ -173,6 +184,8 @@ export class SimulationEngine {
       config.altitudeKm,
       this.orbitalVelocityMs,
     );
+    this.physicalOrbitalState =
+      createCircularOrbitalState(config.altitudeKm);
   }
 
   get eventScheduler(): EventScheduler {
@@ -188,6 +201,11 @@ export class SimulationEngine {
     }
 
     const nextTime = this.simulationTimeSeconds + this.config.timeStepSeconds;
+
+    const nextPhysicalOrbitalState = propagateOrbit(
+      this.physicalOrbitalState,
+      this.config.timeStepSeconds,
+    );
 
     const orbit = calculateOrbit({
       altitudeKm: this.config.altitudeKm,
@@ -227,6 +245,7 @@ export class SimulationEngine {
 
     const dueEvents = this.scheduler.getDueEvents(nextTime);
 
+    this.physicalOrbitalState = nextPhysicalOrbitalState;
     this.simulationTimeSeconds = nextTime;
     this.batteryEnergyWh = battery.remainingEnergyWh;
     this.dataBufferGB = communications.remainingBufferGB;
@@ -234,6 +253,10 @@ export class SimulationEngine {
     const telemetry: Telemetry = {
       orbitalVelocityMs: this.orbitalVelocityMs,
       orbitalState: this.orbitalState,
+      positionXM: this.physicalOrbitalState.position.x,
+      positionYM: this.physicalOrbitalState.position.y,
+      velocityXMs: this.physicalOrbitalState.velocity.x,
+      velocityYMs: this.physicalOrbitalState.velocity.y,
       simulationTimeSeconds: nextTime,
       orbitalPhase: orbit.currentPhase,
       inEclipse: orbit.inEclipse,
@@ -291,25 +314,42 @@ export class SimulationEngine {
       initialPropellantKg: this.fuelRemainingKg,
     });
 
-    const signedDeltaV =
-      direction === "PROGRADE" ? result.deltaVMS : -result.deltaVMS;
-    const newVelocity = this.orbitalVelocityMs + signedDeltaV;
+    const directionSign = direction === "PROGRADE" ? 1 : -1;
+    const velocity = this.physicalOrbitalState.velocity;
+    const speed = Math.hypot(velocity.x, velocity.y);
 
-    if (newVelocity < 0) {
+    if (speed === 0) {
+      throw new Error("Cannot burn with zero orbital velocity");
+    }
+
+    if (directionSign < 0 && result.deltaVMS > speed) {
       throw new Error(
         "Retrograde burn exceeds current orbital velocity",
       );
     }
 
+    const deltaV = result.deltaVMS * directionSign;
+    const newVelocity = {
+      x: velocity.x + (velocity.x / speed) * deltaV,
+      y: velocity.y + (velocity.y / speed) * deltaV,
+    };
+    const position = this.physicalOrbitalState.position;
+    const newPhysicalOrbitalState: OrbitalState2D = {
+      ...this.physicalOrbitalState,
+      velocity: newVelocity,
+      speedMs: Math.hypot(newVelocity.x, newVelocity.y),
+      acceleration: calculateGravity(position),
+    };
     const newOrbitalState = calculateOrbitalState(
-      this.config.altitudeKm,
-      newVelocity,
+      newPhysicalOrbitalState.altitudeKm,
+      newPhysicalOrbitalState.speedMs,
     );
 
+    this.physicalOrbitalState = newPhysicalOrbitalState;
     this.fuelRemainingKg = result.remainingPropellantKg;
     this.cumulativeDeltaVMS += result.deltaVMS;
     this.engineBurning = result.consumedPropellantKg > 0;
-    this.orbitalVelocityMs = newVelocity;
+    this.orbitalVelocityMs = newPhysicalOrbitalState.speedMs;
     this.orbitalState = newOrbitalState;
 
     return result;

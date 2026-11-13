@@ -23,6 +23,17 @@ const config = {
   groundStationAvailable: false,
 };
 
+const physicalBurnConfig = {
+  ...config,
+  timeStepSeconds: 1,
+  propulsion: {
+    thrustN: 1000,
+    ispSeconds: 300,
+    dryMassKg: 500,
+    initialPropellantKg: 100,
+  },
+};
+
 describe("Simulation Engine", () => {
   it("advances simulation time", () => {
     const engine = new SimulationEngine(config);
@@ -31,6 +42,40 @@ describe("Simulation Engine", () => {
 
     expect(telemetry.simulationTimeSeconds).toBe(60);
     expect(engine.getCurrentTime()).toBe(60);
+  });
+
+  it("advances spacecraft position every simulation step", () => {
+    const engine = new SimulationEngine(config);
+
+    const first = engine.step();
+    const second = engine.step();
+
+    expect(second.positionYM).not.toBe(first.positionYM);
+    expect(second.positionXM).not.toBe(first.positionXM);
+  });
+
+  it("changes physical velocity after prograde burn", () => {
+    const engine = new SimulationEngine(physicalBurnConfig);
+
+    const before = engine.step();
+
+    engine.burn(10, "PROGRADE");
+
+    const after = engine.step();
+
+    expect(after.velocityYMs).toBeGreaterThan(before.velocityYMs);
+  });
+
+  it("reduces physical velocity after retrograde burn", () => {
+    const engine = new SimulationEngine(physicalBurnConfig);
+
+    const before = engine.step();
+
+    engine.burn(10, "RETROGRADE");
+
+    const after = engine.step();
+
+    expect(after.velocityYMs).toBeLessThan(before.velocityYMs);
   });
 
   it("generates telemetry", () => {
