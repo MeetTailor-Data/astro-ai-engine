@@ -35,12 +35,12 @@ export default function TopNavbar() {
       {/* LEFT: Agency Emblem */}
       <div className="flex items-center gap-2.5">
         <div
-          className="relative flex h-9 w-9 shrink-0 items-center justify-center border border-[#00F0FF]/60 bg-[#0A1328] shadow-[0_0_14px_rgba(0,240,255,0.25)]"
+          className="relative flex h-10 w-10 shrink-0 items-center justify-center border border-[#00F0FF]/60 bg-[#0A1328] p-1 shadow-[0_0_14px_rgba(0,240,255,0.25)]"
           style={{
             clipPath: 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)',
           }}
         >
-          <Rocket className="h-4 w-4 text-[#00F0FF]" />
+          <img src="/logo.png" alt="Aestro AI" className="h-6 w-6 object-contain drop-shadow-[0_0_6px_rgba(255,107,26,0.6)]" />
         </div>
         <div className="leading-tight whitespace-nowrap">
           <div className="font-display text-xs font-extrabold tracking-[0.16em] text-white sm:text-sm">
