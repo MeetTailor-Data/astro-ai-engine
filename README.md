@@ -1,652 +1,187 @@
-# Astro AI Engine
+# 🚀 AESTRO AI // Space Mission Design Game
 
-A space mission design and simulation platform combining a TypeScript physics simulator, an interactive 3D frontend, synthetic mission data generation, and a machine learning prediction pipeline.
+[![NASA Space Apps Challenge 2026](https://img.shields.io/badge/NASA%20Space%20Apps-Challenge%202026-0B3D91?style=for-the-badge&logo=nasa&logoColor=white)](https://www.spaceappschallenge.org/2026/challenges/space-mission-design-game/)
+[![Live Deployment](https://img.shields.io/badge/Live%20Demo-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://astro-ai-engine.vercel.app/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![Team](https://img.shields.io/badge/Team-Meet%20Tailor%20%26%20Team-orange?style=for-the-badge)](https://github.com/MeetTailor-Data/astro-ai-engine)
 
-Developed by **Astro Architects** for the NASA Space Apps Challenge 2026 — Space Mission Design Game.
-
-> **Project scope:** This is an educational mission simulation and design tool. Its physics models are simplified and are not intended for real spacecraft flight operations or NASA-certified engineering analysis.
-
----
-
-## Table of Contents
-
-- [Overview](#overview)
-- [NASA Space Apps Challenge Alignment](#nasa-space-apps-challenge-alignment)
-- [Architecture](#architecture)
-- [Features](#features)
-- [Technology Stack](#technology-stack)
-- [Repository Structure](#repository-structure)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Running the Project](#running-the-project)
-- [Simulation Engine](#simulation-engine)
-- [Machine Learning Pipeline](#machine-learning-pipeline)
-- [API Integration](#api-integration)
-- [Testing](#testing)
-- [Environment Variables](#environment-variables)
-- [Team Contribution Workflow](#team-contribution-workflow)
-- [Limitations](#limitations)
-- [Acknowledgments](#acknowledgments)
+> **Official Entry for the NASA Space Apps Challenge 2026 (Surat)**  
+> **Challenge:** Space Mission Design Game  
+> **Public Web Application:** [https://astro-ai-engine.vercel.app/](https://astro-ai-engine.vercel.app/)  
+> **Repository:** [https://github.com/MeetTailor-Data/astro-ai-engine](https://github.com/MeetTailor-Data/astro-ai-engine)  
 
 ---
 
-## Overview
+## 📖 Executive Summary
 
-Astro AI Engine brings together three major components:
+**AESTRO AI** is a browser-based aerospace systems-engineering simulation game designed for **1 to 4 players** (Solo or Multiplayer Team). It immerses players in NASA's rigorous space mission lifecycle across the **Four Mission Segments** (Launch, Space, Ground, and User Segments) and **Concept Maturity Levels (CML 1–4)**.
 
-| Component | Purpose |
-|---|---|
-| Simulation Engine | Simulates mission physics, spacecraft subsystems, and mission outcomes |
-| Interactive Frontend | Provides mission selection, rocket configuration, 3D visualization, and telemetry |
-| Machine Learning Pipeline | Generates synthetic mission datasets and trains models to predict mission outcomes |
-
-The project aims to make space mission design more interactive and understandable through simulation, visualization, and data-driven analysis.
+Rather than relying on simplified arcade mechanics, AESTRO AI challenges players to solve the fundamental systems-engineering dilemma: balancing **Mass, Power, Budget, Data, Telecommunications, and Schedule** against the laws of orbital mechanics (Tsiolkovsky rocket equation, Keplerian dynamics, and GMAT trajectory baselines). Players assemble modular multi-stage rockets in an interactive 3D Vehicle Assembly Building (VAB), conduct a multi-role **Flight Readiness Review (Team Go/No-Go Console)**, execute powered atmospheric ascents and EDL sequences in real time, and analyze flight anomalies through an automated debriefing engine matched with real NASA mission lineage.
 
 ---
 
-## NASA Space Apps Challenge Alignment
+## 📸 Visual Project Walkthrough & Gallery
 
-Astro AI Engine is developed for the **NASA Space Apps Challenge 2026 — Space Mission Design Game**.
+The complete mission design lifecycle in AESTRO AI:
 
-The project explores educational space mission design through simulation, visualization, and machine learning.
+| 01. Mission Selection & Dossier | 02. 3D Vehicle Assembly Building (VAB) |
+|:---:|:---:|
+| ![Mission Selection](screenshots/01_mission_selection.jpg) | ![VAB Assembly](screenshots/02_vab_hangar_assembly.jpg) |
+| *Browse mission contracts (LEO Sentinel, Lunar Lander, Mars Rover) with CML-1 requirements.* | *Modular 6-slot rocket configuration with interactive 360° WebGL 3D inspection.* |
 
-### Mission Design Concepts
+| 03. Subsystem & Propellant Tuning | 04. 6-Resource Telemetry & Readiness |
+|:---:|:---:|
+| ![Subsystem Tuning](screenshots/03_subsystem_configuration.jpg) | ![Resource Telemetry](screenshots/04_six_resource_telemetry.png) |
+| *Optimize engine cycles, propellants (Hydrolox, Methalox, RP-1), and fuel tank sizing.* | *Live budget caps, power margins, and Maya's Avionics Remediation Directives.* |
 
-The platform incorporates concepts related to:
+| 05. Launchpad Staging & Countdown | 06. In-Flight Ascent Telemetry |
+|:---:|:---:|
+| ![Countdown](screenshots/05_launch_control_countdown.jpg) | ![Ascent Telemetry](screenshots/06_live_flight_telemetry.jpg) |
+| *Automated launch sequencer with cryogenic fueling and pad stabilization checks.* | *Live telemetry graphs: Altitude, velocity, dynamic pressure (Q), and G-force.* |
 
-- **Launch Segment:** Rocket configuration, propulsion, fuel consumption, and mission launch simulation.
-- **Space Segment:** Orbital motion, spacecraft power, communications, and mission objectives.
-- **Ground Segment:** Mission telemetry and communication interfaces.
-- **User Segment:** Mission visualization, results, and scientific data presentation.
+| 07. Mission Debrief & Scoring | 08. Multi-Camera Launch Tracking |
+|:---:|:---:|
+| ![Mission Debrief](screenshots/07_post_flight_debrief.jpg) | ![Launch Tracking](screenshots/08_rocket_liftoff_telemetry.jpg) |
+| *0–1000 objective scoring, letter grades (S–F), and local mission leaderboards.* | *Real-time exhaust particle physics, camera tracking, and pad telemetry.* |
 
-### Trajectory and Mission Analysis
-
-The simulator incorporates simplified mission analysis concepts, including:
-
-- Orbital propagation and gravitational motion.
-- Atmospheric drag and orbital decay.
-- Propulsion and delta-v calculations.
-- Solar power generation and eclipse effects.
-- Mission objectives, validation, and scoring.
-
-### Machine Learning for Mission Analysis
-
-The machine learning pipeline generates synthetic mission datasets and trains predictive models to analyze mission outcomes.
-
-These predictions are experimental and are not substitutes for numerical physics simulation or real-world mission analysis.
-
-> The project is inspired by space mission design concepts and is not an official NASA, JPL, or Goddard Space Flight Center software product.
+| 09. Orbit Confirmed & NASA Heritage |
+|:---:|
+| ![Orbit Confirmed](screenshots/09_orbit_confirmed_heritage.jpg) |
+| *Orbit insertion confirmed with 3D deployed satellite and real NASA flight matching (NOAA-20 / JPSS).* |
 
 ---
 
-## Architecture
+## 🏛️ NASA Space Apps Challenge Alignment
 
-```text
-                    ASTRO AI ENGINE
-                           |
-          +----------------+----------------+
-          |                |                |
-          v                v                v
-   Simulation Engine   Frontend       ML Pipeline
-    TypeScript         React           Python
-          |                |                |
-          v                v                v
-    Mission Physics   3D Visuals     Training Data
-    Mission Runner    Rocket Builder  Model Training
-    Objectives        Telemetry       Evaluation
-    Scoring           Mission UI       Predictions
-          |
-          v
-     Express API
-    REST + SSE
-          |
-          v
-     Live Frontend
+AESTRO AI is built directly on the principles outlined in the **NASA Science Mission Directorate's *Design and Develop Science Missions (2025/2026)* guidelines**:
+
+### 1. The Four Mission Segments
+* 🚀 **Launch Segment:** Launch vehicle selection, booster clusters, multi-stage propellant mass fractions, liftoff Thrust-to-Weight Ratio ($\text{TWR} \ge 1.25$), and atmospheric drag.
+* 🛰️ **Space Segment:** Spacecraft bus, science payloads (Earth observation, lunar surface lander, deep space rover), power generation (solar arrays/RTG), and thermal fairings.
+* 📡 **Ground Segment:** Deep Space Network (DSN) link budget modeling, ground station contact windows, and frequency attenuation based on target body distance.
+* 📊 **User Segment:** Downlink throughput ($\text{Mbps}$), science return point valuation, mission duration, and telemetry synthesis.
+
+### 2. NASA Concept Maturity Level (CML) Progression
+* **CML-1 (Feasibility Concept):** Objective definition, target delta-V baselines, and destination constraints.
+* **CML-2 (Subsystem Trades):** Propellant chemistry trade-offs (Hydrolox $I_{sp} 450\text{s}$ vs. Methalox $380\text{s}$ vs. RP-1 $310\text{s}$), battery capacity, and antenna sizing.
+* **CML-3 (System Integration):** Structural mass balance, aerodynamic fairing clearance, and power deficit mitigation.
+* **CML-4 (Flight Readiness Review):** Multi-role Go/No-Go authorization and launchpad rollout clearance.
+
+---
+
+## ⚖️ The 6 Coupled Mission Resources
+
+Spacecraft design requires navigating deeply coupled engineering feedback loops:
+
+```mermaid
+graph TD
+    Payload["Scientific Payload"] -->|Requires| Power["⚡ Power (W)"]
+    Power -->|Demands Solar/Batteries| Mass["⚖️ Mass (kg)"]
+    Mass -->|Demands Larger Booster| Propellant["⛽ Propellant & Delta-V (m/s)"]
+    Propellant -->|Increases Rocket Size| Budget["💰 Budget ($M Cap)"]
+    Budget -->|Affects Development Cycle| Time["⏱️ Schedule (Months)"]
+    Payload -->|Generates Science Data| Data["📈 Data (Mbps)"]
+    Data -->|Attenuated by Distance| Comms["📡 Comms Margin (dB)"]
 ```
 
-### Component Interaction
-
-- The frontend provides mission configuration and interactive visualization.
-- The simulation engine calculates mission progression, subsystem states, and mission outcomes.
-- The Express API exposes simulator functionality to the frontend.
-- The synthetic dataset generator produces mission data for the ML pipeline.
-- The Python pipeline trains and evaluates predictive models using generated data.
-
----
-
-## Features
-
-### Simulation Engine
-
-- Orbital propagation using Velocity Verlet integration.
-- Earth gravity and orbital motion.
-- Atmospheric drag and orbital decay.
-- Earth impact and mission failure handling.
-- Propulsion, fuel consumption, and delta-v calculations.
-- Solar power generation and eclipse handling.
-- Battery energy management.
-- Communication and data buffering.
-- Mission objectives and validation.
-- Mission scoring and grading.
-- Telemetry and simulation events.
-- Mission execution and completion tracking.
-
-### Interactive Frontend
-
-- Interactive 3D solar system visualization.
-- Mission selection interface.
-- Vehicle Assembly Building (VAB) rocket configuration.
-- Rocket staging and configuration.
-- Launch control interface.
-- Telemetry visualization.
-- Mission outcome and scorecard presentation.
-
-### Machine Learning
-
-- Synthetic mission training data generation.
-- Feature normalization.
-- PyTorch neural network training.
-- Validation and test evaluation.
-- Mission outcome prediction.
-- Classification metrics including accuracy, precision, recall, and F1-score.
+1. **Mass (kg):** Dry mass, propellant mass, liftoff mass, structural mass ratio, and liftoff TWR.
+2. **Power (W):** Solar array / RTG wattage supply vs. avionics and payload demand with safety margins.
+3. **Budget ($M):** Strict per-mission cost caps ($150M LEO, $340M Lunar, $640M Mars) with cost-efficiency score bonuses.
+4. **Data (Mbps):** Raw instrument generation rate vs. storage buffer limits.
+5. **Comms (dB):** Radio link margin modeled using Friis transmission equations over planetary distances.
+6. **Time (Months):** Development schedule constraints evaluated against planetary launch windows.
 
 ---
 
-## Technology Stack
+## 🎮 Game Architecture & Key Features
 
-| Area | Technologies |
+### 1. Collaborative Team Go/No-Go Console (1–4 Players)
+Before rollout to Pad-39A, teams conduct a live **Flight Readiness Review (FRR)**. Designed for solo players or cooperative teams of up to 4:
+* **PROPULSION:** Clears TWR ($\ge 1.25$), Max-Q limits ($\le 5.0$), and target $\Delta V$ requirements.
+* **SPACECRAFT:** Verifies payload bus matching, EDL system (heatshield/parachutes/retro-jets), and fairing protection.
+* **POWER & COMMS:** Validates positive wattage margin ($\ge 0\%$) and telecommunications link margin ($\ge 0\text{ dB}$).
+* **MISSION DIRECTOR:** Enforces project budget compliance and final launch authorization.
+* *Interlock Feature:* The Mission Director cannot vote GO until all three disciplines are verified green. Any vehicle redesign automatically resets all approvals.
+
+### 2. Chief Engineer Maya (Live Advisory System)
+When configurations violate physical flight envelopes, Chief Engineer Maya provides live audio-visual advisories and **Avionics Remediation Directives** (e.g., advising propellant mass shifts, engine cycle changes, or fairing reinforcements).
+
+### 3. Real-Time Flight & EDL Simulation
+* Atmospheric ascent physics calculating dynamic pressure ($Q$), air density decay, and thrust curves.
+* Staging events: Booster separation, stage ignition, fairing jettison above dense atmosphere, orbital insertion burn, and Entry, Descent & Landing (EDL) sequences.
+
+### 4. NASA Mission Heritage Lineage Match
+Successful flights are automatically benchmarked against real NASA exploration missions:
+* **LEO Sun-Synchronous:** NOAA-20 / JPSS-1 Weather Sentinel Lineage.
+* **Lunar Surface:** Surveyor 1 & Apollo Lunar Module Descent Lineage.
+* **Mars Interplanetary:** Mars 2020 Perseverance & Curiosity Sky-Crane Lineage.
+
+### 5. Responsive Hardware Advisory
+AESTRO AI includes an automated client-side device advisory (`MobileBlocker.jsx`) that detects mobile devices and prompts users to open the game on a desktop workstation or toggle desktop landscape mode for optimal 3D WebGL performance.
+
+---
+
+## 🛠️ Technology Stack
+
+| Layer | Technologies |
 |---|---|
-| Frontend | React 19, Vite |
-| 3D Graphics | Three.js, React Three Fiber, Drei |
-| Styling | Tailwind CSS |
-| Backend | Node.js, Express |
-| Simulation | TypeScript |
-| Validation | Zod |
-| Testing | Vitest |
-| Machine Learning | Python, PyTorch |
-| Data Processing | NumPy, Pandas, Scikit-learn |
-| Visualization | Matplotlib |
-| Version Control | Git, GitHub |
+| **Frontend Framework** | React 18 / 19, Vite |
+| **3D Graphics & WebGL** | Three.js, @react-three/fiber, @react-three/drei |
+| **Styling & UI** | Tailwind CSS, Lucide Icons, Custom Sci-Fi Tactile HUD |
+| **Simulation Physics** | TypeScript, Tsiolkovsky Multi-Stage Integrator |
+| **Audio Engine** | Custom Web Audio API Synthesizer (Zero External Audio Dependencies) |
+| **Deployment** | Vercel (Global Edge Network) |
 
 ---
 
-## Repository Structure
+## 🔬 NASA Data & AI Usage Disclosure
 
-```text
-astro-ai-engine/
-|
-+-- configs/
-|   +-- config.yaml
-|
-+-- data/
-|   +-- raw/
-|   +-- processed/
-|
-+-- frontend/
-|   +-- src/
-|   |   +-- components/
-|   |   |   +-- three/
-|   |   +-- context/
-|   |   +-- services/
-|   |   +-- utils/
-|   +-- package.json
-|   +-- vite.config.js
-|   +-- .gitignore
-|
-+-- models/
-|
-+-- notebooks/
-|
-+-- simulation-work/
-|   +-- src/
-|   |   +-- engine.ts
-|   |   +-- orbit.ts
-|   |   +-- orbital-propagator.ts
-|   |   +-- atmospheric-drag.ts
-|   |   +-- battery.ts
-|   |   +-- power.ts
-|   |   +-- propulsion.ts
-|   |   +-- communications.ts
-|   |   +-- telemetry.ts
-|   |   +-- mission-runner.ts
-|   |   +-- generate-training-data.ts
-|   |   +-- api/
-|   |       +-- server.ts
-|   +-- tests/
-|   +-- package.json
-|   +-- tsconfig.json
-|
-+-- src/
-|   +-- dataset.py
-|   +-- model.py
-|   +-- train.py
-|   +-- evaluate.py
-|   +-- utils.py
-|
-+-- requirements.txt
-+-- README.md
-+-- README-WIRING.md
-+-- .gitignore
-```
+### NASA Data & Resources
+1. **NASA General Mission Analysis Tool (GMAT):** Trajectory delta-V baselines ($9,400\text{ m/s}$ LEO, $13,200\text{ m/s}$ Moon, $16,800\text{ m/s}$ Mars).
+2. **NASA Systems Engineering Handbook (SP-2016-6105 Rev 2):** Systems engineering lifecycle and trade-off matrices.
+3. **NASA Jet Propulsion Laboratory (JPL) DSN Handbook:** Deep space communications link budget formulas and frequency bands.
+4. **NASA Technical Reports Server (NTRS):** Mars 2020 Entry, Descent, and Landing (EDL) flight envelope specifications.
+
+### AI & Automated Algorithms
+* **Deterministic Optimization Engine:** AESTRO AI utilizes an automated constraint-satisfaction solver and real-time state vector evaluation routines rather than black-box machine learning, adhering to NASA's mission-critical requirement that spaceflight trajectories and life-support margins follow verifiable physical laws.
 
 ---
 
-## Prerequisites
+## 🚀 Local Development & Quick Start
 
-Install the following before running the project.
+### Prerequisites
+* **Node.js:** v18.0.0 or higher
+* **npm:** v9.0.0 or higher
 
-- **Node.js:** Compatible with the installed frontend and simulator dependencies.
-- **npm:** Included with Node.js.
-- **Python:** 3.10 or newer recommended.
-- **Git:** For repository management.
-- **NVIDIA GPU:** Optional; CUDA-compatible hardware can accelerate model training.
-
-Check installations:
+### Installation
 
 ```bash
-node --version
-npm --version
-python --version
-git --version
-```
-
----
-
-## Installation
-
-Clone the repository:
-
-```bash
+# 1. Clone the repository
 git clone https://github.com/MeetTailor-Data/astro-ai-engine.git
-```
-
-Navigate into the repository:
-
-```bash
-cd astro-ai-engine
-```
-
-### Install Simulator Dependencies
-
-```bash
-cd simulation-work
-npm install
-```
-
-### Install Frontend Dependencies
-
-Open another terminal:
-
-```bash
 cd astro-ai-engine/frontend
+
+# 2. Install dependencies
 npm install
-```
 
-### Install Python Dependencies
-
-Return to the repository root:
-
-```bash
-cd astro-ai-engine
-```
-
-Create a virtual environment:
-
-```bash
-python -m venv .venv
-```
-
-Activate it on Windows PowerShell:
-
-```powershell
-.\.venv\Scripts\Activate.ps1
-```
-
-Install Python dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
----
-
-## Running the Project
-
-### 1. Run the Simulation Demo
-
-```bash
-cd simulation-work
-npm run demo
-```
-
-This executes the demonstration mission and prints mission progress, objective completion, and final scoring information.
-
-### 2. Start the Simulation API
-
-```bash
-cd simulation-work
-npm run api
-```
-
-The API server runs at:
-
-```text
-http://localhost:3000
-```
-
-### 3. Start the Frontend
-
-Open a separate terminal:
-
-```bash
-cd frontend
+# 3. Start local development server
 npm run dev
 ```
 
-Open:
-
-```text
-http://localhost:5173
-```
-
-### 4. Generate Synthetic Training Data
-
-```bash
-cd simulation-work
-npm run generate-data
-```
-
-The generated dataset is used by the Python machine learning pipeline.
-
-### 5. Train the ML Model
-
-From the repository root:
-
-```bash
-python -m src.train
-```
-
-### 6. Evaluate the ML Model
-
-```bash
-python -m src.evaluate
-```
+Visit `http://localhost:5173/` in your browser.
 
 ---
 
-## Simulation Engine
+## 👥 Project Team & Credits
 
-The simulator is implemented in TypeScript under `simulation-work/`.
-
-### Physics and Subsystems
-
-| Subsystem | Responsibility |
-|---|---|
-| Orbital Mechanics | Orbital motion, gravity, propagation |
-| Atmospheric Drag | Atmospheric resistance and orbital decay |
-| Propulsion | Fuel consumption and delta-v |
-| Power | Solar generation and spacecraft power consumption |
-| Battery | Energy storage and battery state |
-| Communications | Data transmission and buffering |
-| Telemetry | Mission state and subsystem monitoring |
-| Mission Runner | Mission execution and lifecycle |
-| Scoring | Objective evaluation and mission grading |
-
-### Mission Execution
-
-The mission runner coordinates simulation steps, subsystem updates, telemetry, objective evaluation, and mission termination conditions.
-
-Mission outcomes may include:
-
-- Mission completion.
-- Mission duration reached.
-- Objective completion or failure.
-- Spacecraft subsystem failures.
-- Orbital failure conditions.
-
-### Simulation Accuracy
-
-The engine uses simplified physics models suitable for interactive educational simulation.
-
-It is not a replacement for high-fidelity orbital analysis software or professional spacecraft mission design tools.
+Developed with passion for the **NASA Space Apps Challenge 2026 (Surat)**:
+* **Meet Tailor** — Lead Architecture, Systems Engineering Simulation & Physics
+* **AESTRO Team** — Mission Design, 3D Assets & Spacecraft Visualizations
 
 ---
 
-## Machine Learning Pipeline
-
-The machine learning pipeline is implemented in Python.
-
-### Pipeline
-
-```text
-Simulation Engine
-       |
-       v
-Synthetic Dataset Generation
-       |
-       v
-Data Preprocessing
-       |
-       v
-Model Training
-       |
-       v
-Validation
-       |
-       v
-Model Evaluation
-       |
-       v
-Mission Outcome Prediction
-```
-
-### Main Files
-
-| File | Responsibility |
-|---|---|
-| `src/dataset.py` | Dataset loading and preprocessing |
-| `src/model.py` | Neural network architecture |
-| `src/train.py` | Model training |
-| `src/evaluate.py` | Model evaluation |
-| `src/utils.py` | Configuration, reproducibility, device selection |
-| `configs/config.yaml` | Training configuration |
-| `simulation-work/src/generate-training-data.ts` | Synthetic dataset generation |
-
-### Model Training
-
-The pipeline uses PyTorch to train a neural network on generated mission data.
-
-Training includes:
-
-- Feature normalization.
-- Training and validation splits.
-- Model optimization.
-- Validation loss monitoring.
-- Model checkpointing.
-
-### Model Evaluation
-
-The evaluation pipeline reports classification metrics such as:
-
-- Accuracy
-- Precision
-- Recall
-- F1-score
-- ROC-AUC, when supported by the evaluation task and dataset
-
-> Machine learning predictions are learned from generated data. They are not guaranteed mission outcomes or independent physics calculations.
-
-For the detailed simulation-to-ML data flow, see [README-WIRING.md](README-WIRING.md).
-
----
-
-## API Integration
-
-The Express API is implemented under:
-
-```text
-simulation-work/src/api/server.ts
-```
-
-Start it with:
-
-```bash
-cd simulation-work
-npm run api
-```
-
-Base URL:
-
-```text
-http://localhost:3000
-```
-
-### API Endpoints
-
-| Method | Endpoint | Purpose |
-|---|---|---|
-| GET | `/api/health` | Server health check |
-| GET | `/api/missions/profiles` | Retrieve mission profiles |
-| POST | `/api/missions/custom` | Validate and create custom missions |
-| GET | `/api/missions/:id/stream` | Stream mission telemetry using SSE |
-
-### Server-Sent Events
-
-The mission stream endpoint uses Server-Sent Events (SSE) to deliver telemetry updates to connected clients.
-
-The frontend API integration is located at:
-
-```text
-frontend/src/services/api.js
-```
-
-For request payloads, response structures, and integration details, consult the API implementation and [README-WIRING.md](README-WIRING.md).
-
----
-
-## Testing
-
-The simulator uses Vitest.
-
-Run tests:
-
-```bash
-cd simulation-work
-npm test
-```
-
-Run tests in watch mode:
-
-```bash
-npm run test:watch
-```
-
-Run TypeScript type checking:
-
-```bash
-npm run typecheck
-```
-
-Run the mission demo:
-
-```bash
-npm run demo
-```
-
-Frontend production build:
-
-```bash
-cd frontend
-npm run build
-```
-
-Before submitting simulator changes, run type checking and the complete simulator test suite.
-
----
-
-## Environment Variables
-
-Do not commit secrets or private environment configuration.
-
-Environment files should remain local. If a component requires environment variables, document their names in an `.env.example` file without including real credentials.
-
----
-
-## Team Contribution Workflow
-
-Astro AI Engine is developed collaboratively.
-
-### 1. Update Your Local Branch
-
-```bash
-git pull origin main
-```
-
-### 2. Create a Feature Branch
-
-```bash
-git checkout -b feature/your-feature-name
-```
-
-### 3. Make and Test Your Changes
-
-Simulator:
-
-```bash
-cd simulation-work
-npm run typecheck
-npm test
-```
-
-Frontend:
-
-```bash
-cd frontend
-npm run build
-```
-
-### 4. Stage Only Your Changes
-
-Do not blindly stage the entire repository.
-
-```bash
-git add simulation-work/src/your-file.ts
-git add simulation-work/tests/your-file.test.ts
-```
-
-### 5. Commit
-
-```bash
-git commit -m "feat: describe your change"
-```
-
-### 6. Push
-
-```bash
-git push origin feature/your-feature-name
-```
-
-### 7. Open a Pull Request
-
-Review changes before merging into the main branch.
-
----
-
-## Limitations
-
-- Orbital and subsystem physics use simplified models.
-- Results depend on mission configuration and simulation assumptions.
-- Synthetic training data does not represent a complete real-world mission dataset.
-- ML predictions may not generalize beyond the training data.
-- Visualization is intended for interactive mission design and educational use.
-- The platform is not flight-certified or NASA-certified software.
-
----
-
-## Acknowledgments
-
-Developed by **Astro Architects** for the **NASA International Space Apps Challenge 2026**.
-
-Challenge: **Space Mission Design Game**
-
-NASA Space Apps Challenge is an international hackathon. Astro AI Engine is an independent team project and is not an official NASA operational system.
+## 📜 References
+
+1. NASA Science Mission Directorate, *Design and Develop Science Missions — Systems Engineering Overview*, 2025/2026.
+2. NASA Goddard Space Flight Center, *General Mission Analysis Tool (GMAT) Mathematical Specification*, NASA Open Source Software GSC-19468-1.
+3. NASA Jet Propulsion Laboratory, *Deep Space Network (DSN) Telecommunications Link Design Handbook*, 810-005.
+4. NASA SP-2016-6105 Rev 2, *NASA Systems Engineering Handbook*, National Aeronautics and Space Administration.
