@@ -177,12 +177,12 @@ Developed with passion for the **NASA Space Apps Challenge 2026 (Surat)**:
 
 | Member | NASA Space Apps Handle | Role in Project |
 |---|---|---|
-| **Meet Tailor** | `@meettailor` | **Team Leader** • Lead Systems Architect & Physics Simulation |
-| **Nirav Panwala** | `@nirav_panwala` | **Team Owner** • Systems Integration & Project Management |
-| **Rudra Soni** | `@rudra_soni` | Flight Dynamics & Simulation Engineering |
-| **Prajapati Dev Rameshbhai** | `@dev281206` | Subsystem Modeling & Payload Integration |
-| **Tanay Sunil Puranik** | `@spaceking` | Aerospace Research & Mission Profiles |
-| **Mansi Solanki** | `@mansisolanki` | UI/UX Design & Mission Operations Interface |
+| **Meet Tailor** | `@meettailor` | **Team Leader** • Lead Systems Architect, Physics Simulation & NASA Data Resources Architecture |
+| **Nirav Panwala** | `@nirav_panwala` | **Team Owner** • Simulation Engineering & Systems Integration |
+| **Rudra Soni** | `@rudra_soni` | Flight Dynamics & Frontend Engineering |
+| **Prajapati Dev Rameshbhai** | `@dev281206` | Project Management, Documentation & Presentation |
+| **Tanay Sunil Puranik** | `@spaceking` | UI/UX Design & Mission Operations Interface |
+| **Mansi Solanki** | `@mansisolanki` | Aerospace Research & Mission Profiles |
 
 ---
 
