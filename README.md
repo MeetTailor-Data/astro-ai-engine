@@ -171,11 +171,18 @@ Visit `http://localhost:5173/` in your browser.
 
 ---
 
-## 👥 Project Team & Credits
+## 👥 Official Team Roster & Roles
 
 Developed with passion for the **NASA Space Apps Challenge 2026 (Surat)**:
-* **Meet Tailor** — Lead Architecture, Systems Engineering Simulation & Physics
-* **AESTRO Team** — Mission Design, 3D Assets & Spacecraft Visualizations
+
+| Member | NASA Space Apps Handle | Role in Project |
+|---|---|---|
+| **Meet Tailor** | `@meettailor` | **Team Leader** • Lead Systems Architect & Physics Simulation |
+| **Nirav Panwala** | `@nirav_panwala` | **Team Owner** • Systems Integration & Project Management |
+| **Rudra Soni** | `@rudra_soni` | Flight Dynamics & Simulation Engineering |
+| **Prajapati Dev Rameshbhai** | `@dev281206` | Subsystem Modeling & Payload Integration |
+| **Tanay Sunil Puranik** | `@spaceking` | Aerospace Research & Mission Profiles |
+| **Mansi Solanki** | `@mansisolanki` | UI/UX Design & Mission Operations Interface |
 
 ---
 
