@@ -4,6 +4,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import LaunchControl from './components/LaunchControl';
 import MissionOutcome from './components/MissionOutcome';
 import MissionSelect from './components/MissionSelect';
+import MobileBlocker from './components/MobileBlocker';
 import RocketBuilder from './components/RocketBuilder';
 import TopNavbar from './components/TopNavbar';
 import GameWorldCanvas from './components/three/GameWorldCanvas';
@@ -110,6 +111,7 @@ function MissionControlRouter() {
 export default function App() {
   return (
     <ErrorBoundary>
+      <MobileBlocker />
       <MissionProvider>
         <MissionControlRouter />
       </MissionProvider>
