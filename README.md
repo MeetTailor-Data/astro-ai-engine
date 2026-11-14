@@ -192,3 +192,16 @@ Developed with passion for the **NASA Space Apps Challenge 2026 (Surat)**:
 2. NASA Goddard Space Flight Center, *General Mission Analysis Tool (GMAT) Mathematical Specification*, NASA Open Source Software GSC-19468-1.
 3. NASA Jet Propulsion Laboratory, *Deep Space Network (DSN) Telecommunications Link Design Handbook*, 810-005.
 4. NASA SP-2016-6105 Rev 2, *NASA Systems Engineering Handbook*, National Aeronautics and Space Administration.
+
+---
+
+## ⚖️ Copyright & Disclaimers
+
+### Intellectual Property & License
+* **Copyright © 2026 Meet Tailor & Team (AESTRO AI).** All rights reserved.
+* Distributed as an open-source educational platform under the terms of the [**MIT License**](LICENSE).
+
+### NASA Open Data & Non-Endorsement Disclaimer
+* This project was independently developed for the **NASA Space Apps Challenge 2026 (Surat)** under the challenge *Space Mission Design Game*.
+* **NASA Non-Endorsement Notice:** NASA does not endorse any non-U.S. Government entity and is not responsible for information contained on non-U.S. Government websites. All NASA data, mission profiles, and technical frameworks referenced are utilized in accordance with NASA Open Data policies and educational research guidelines.
+* **Simulation Scope:** AESTRO AI is engineered strictly for educational simulation, science communication, and aerospace systems training. While trajectory values and orbital mechanics are grounded in NASA GMAT baselines, physical models are game-scaled for real-time interactive browser performance and are not intended for real-world spaceflight operations.
