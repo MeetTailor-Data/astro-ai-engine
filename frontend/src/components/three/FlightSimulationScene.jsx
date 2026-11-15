@@ -42,6 +42,69 @@ function useEarthCloudsTexture() {
   }, []);
 }
 
+function CurvedPlanetGlobe({
+  bodyType,
+  curvedPlanetTexture,
+  earthCloudsTexture,
+  isOrbitalPhase,
+  isOrbited,
+  ry,
+  altitudeKm,
+}) {
+  const planetRef = useRef();
+  const cloudsRef = useRef();
+
+  useFrame((_, delta) => {
+    if (planetRef.current) {
+      planetRef.current.rotation.y += delta * 0.03;
+    }
+    if (cloudsRef.current) {
+      cloudsRef.current.rotation.y += delta * 0.045;
+    }
+  });
+
+  return (
+    <group
+      position={[
+        0,
+        isOrbitalPhase || isOrbited ? ry - 36 : -52 - Math.min(24, (altitudeKm - 35) * 0.12),
+        isOrbitalPhase || isOrbited ? -6 : -12,
+      ]}
+    >
+      <mesh ref={planetRef} rotation={[0.4, 0, 0]}>
+        <sphereGeometry args={[42, 64, 48]} />
+        <meshStandardMaterial
+          map={curvedPlanetTexture}
+          roughness={0.65}
+          metalness={0.06}
+        />
+      </mesh>
+      {bodyType === 'earth' && (
+        <mesh ref={cloudsRef} rotation={[0.3, 0, 0]}>
+          <sphereGeometry args={[42.35, 48, 36]} />
+          <meshStandardMaterial
+            map={earthCloudsTexture}
+            transparent
+            opacity={0.35}
+            roughness={1.0}
+            depthWrite={false}
+          />
+        </mesh>
+      )}
+      {/* Atmospheric Rayleigh Blue / Mars Haze Halo */}
+      <mesh>
+        <sphereGeometry args={[43.1, 48, 36]} />
+        <meshBasicMaterial
+          color={bodyType === 'mars' ? '#FB923C' : '#38BDF8'}
+          transparent
+          opacity={0.25}
+          side={THREE.BackSide}
+        />
+      </mesh>
+    </group>
+  );
+}
+
 function LatticeLaunchTower({ clampsOpen }) {
   const upperArmRef = useRef();
   const lowerArmRef = useRef();
@@ -660,38 +723,15 @@ export default function FlightSimulationScene({
 
       {/* Photorealistic Curved Earth or Mars Globe below when high in atmosphere / space */}
       {showCurvedEarth && (
-        <group position={[0, isOrbitalPhase || isOrbited ? ry - 36 : -52 - Math.min(24, (altitudeKm - 35) * 0.12), isOrbitalPhase || isOrbited ? -6 : -12]}>
-          <mesh rotation={[0.4, t * 0.03, 0]}>
-            <sphereGeometry args={[42, 64, 48]} />
-            <meshStandardMaterial
-              map={curvedPlanetTexture}
-              roughness={0.65}
-              metalness={0.06}
-            />
-          </mesh>
-          {bodyType === 'earth' && (
-            <mesh rotation={[0.3, t * 0.05, 0]}>
-              <sphereGeometry args={[42.35, 48, 36]} />
-              <meshStandardMaterial
-                map={earthCloudsTexture}
-                transparent
-                opacity={0.35}
-                roughness={1.0}
-                depthWrite={false}
-              />
-            </mesh>
-          )}
-          {/* Atmospheric Rayleigh Blue / Mars Haze Halo */}
-          <mesh>
-            <sphereGeometry args={[43.1, 48, 36]} />
-            <meshBasicMaterial
-              color={bodyType === 'mars' ? '#FB923C' : '#38BDF8'}
-              transparent
-              opacity={0.25}
-              side={THREE.BackSide}
-            />
-          </mesh>
-        </group>
+        <CurvedPlanetGlobe
+          bodyType={bodyType}
+          curvedPlanetTexture={curvedPlanetTexture}
+          earthCloudsTexture={earthCloudsTexture}
+          isOrbitalPhase={isOrbitalPhase}
+          isOrbited={isOrbited}
+          ry={ry}
+          altitudeKm={altitudeKm}
+        />
       )}
 
       {/* Pre-Launch Coastal Spaceport Pad & Lattice Tower */}
