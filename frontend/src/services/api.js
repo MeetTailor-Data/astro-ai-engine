@@ -378,17 +378,18 @@ export function createLocalPhysicsStream({
     let edlDeployed = false;
     let anomalyType = null;
     let status = 'IN_FLIGHT';
-    const countdownSec = simTime < 10 ? Math.max(0, Math.ceil(10 - simTime)) : 0;
+    const COUNTDOWN_SEC = 15;
+    const countdownSec = simTime < COUNTDOWN_SEC ? Math.max(0, Math.ceil(COUNTDOWN_SEC - simTime)) : 0;
 
-    // ─── 1. REALISTIC 10-SECOND NASA TERMINAL COUNTDOWN (simTime 0 -> 10) ───
-    if (simTime < 10) {
+    // ─── 1. REALISTIC 15-SECOND NASA TERMINAL COUNTDOWN (simTime 0 -> 15) ───
+    if (simTime < COUNTDOWN_SEC) {
       phase = 'COUNTDOWN';
-      if (simTime >= 0.2) hqCallout = emitOnce('T10', 'FLIGHT DIRECTOR: Terminal count auto-sequence started. Pad-39A cleared.');
-      if (simTime >= 2.5) hqCallout = emitOnce('T7', 'GUIDANCE: Flight computer transfer to internal guidance verified.');
-      if (simTime >= 5.0) hqCallout = emitOnce('T5', 'PROPULSION: Main engine turbopumps spinning up. Chamber pressures nominal.');
-      if (simTime >= 7.5) hqCallout = emitOnce('T2', 'FIDO: Sound suppression deluge active. 3, 2, 1... Main engine ignition.');
+      if (simTime >= 0.2) hqCallout = emitOnce('T15', 'FLIGHT DIRECTOR: Terminal count initiated. Pad-39A cleared.');
+      if (simTime >= 4.5) hqCallout = emitOnce('T10', 'GUIDANCE: Flight computer internal. All stations GO for launch.');
+      if (simTime >= 8.5) hqCallout = emitOnce('T6', 'PROPULSION: Main engine turbopumps spinning up.');
+      if (simTime >= 11.0) hqCallout = emitOnce('T4', 'FIDO: Sound suppression deluge active.');
     } else {
-      const flightT = simTime - 10; // seconds since T-0 liftoff
+      const flightT = simTime - COUNTDOWN_SEC; // seconds since T-0 liftoff
 
       // ─── 2. ANOMALY: LOW TWR / PAD STALL ──────────────────────────────────
       if (failureCode === 'TWR_LOW') {

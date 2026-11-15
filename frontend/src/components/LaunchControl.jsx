@@ -31,7 +31,7 @@ const CAMERA_MODES = [
 
 const INITIAL_TELEMETRY = {
   tSec: 0,
-  countdownSec: 10,
+  countdownSec: 15,
   altitudeKm: 0,
   velocityMs: 0,
   fuelPct: 100,
@@ -146,7 +146,7 @@ export default function LaunchControl() {
     const hasExplodedRef = { current: false };
 
     const missionId = activeMissionId || `sim-${Date.now()}`;
-    setTelemetry((prev) => ({ ...prev, status: 'IN_FLIGHT', phase: 'COUNTDOWN', countdownSec: 10 }));
+    setTelemetry((prev) => ({ ...prev, status: 'IN_FLIGHT', phase: 'COUNTDOWN', countdownSec: 15 }));
 
     try {
       await runMission(missionId);
@@ -170,16 +170,22 @@ export default function LaunchControl() {
           return prev;
         });
 
-        // Countdown audio
+        // Countdown audio & synchronized voice countdown (5, 4, 3, 2, 1)
         if (tick.phase === 'COUNTDOWN' && tick.countdownSec > 0 && tick.countdownSec !== prevCountdownRef.current) {
           prevCountdownRef.current = tick.countdownSec;
           soundEngine.playCountdownBeep(false);
+          if (tick.countdownSec === 5) soundEngine.speakCountdown('Five');
+          else if (tick.countdownSec === 4) soundEngine.speakCountdown('Four');
+          else if (tick.countdownSec === 3) soundEngine.speakCountdown('Three');
+          else if (tick.countdownSec === 2) soundEngine.speakCountdown('Two');
+          else if (tick.countdownSec === 1) soundEngine.speakCountdown('One');
         }
 
-        // Liftoff thruster rumble
+        // Liftoff thruster rumble & synchronized Liftoff callout
         if (tick.phase !== 'COUNTDOWN' && tick.status === 'IN_FLIGHT' && tick.phase !== 'EXPLODING') {
           if (prevCountdownRef.current !== 0) {
             prevCountdownRef.current = 0;
+            soundEngine.speakCountdown('Liftoff! We have liftoff!');
             soundEngine.playCountdownBeep(true);
             soundEngine.startThrusterRumble();
           }
@@ -202,7 +208,10 @@ export default function LaunchControl() {
 
         // HQ Callout radio log + NASA synthesized voice broadcast
         if (tick.hqCallout) {
-          soundEngine.speakRadioCallout(tick.hqCallout, tick.phase === 'EXPLODING');
+          // Do not repeat countdown numbers if already spoken
+          if (!['T3', 'T2', 'T1', 'LIFT_COUNT'].includes(tick.hqCalloutKey)) {
+            soundEngine.speakRadioCallout(tick.hqCallout, tick.phase === 'EXPLODING');
+          }
           const tLabel =
             tick.phase === 'COUNTDOWN'
               ? `T-00:${String(tick.countdownSec || 1).padStart(2, '0')}`
