@@ -405,10 +405,19 @@ export default function RocketBuilder() {
   const payloadRel = rocketConfig.avionicsPayload?.guidanceReliability ?? 0;
 
   return (
-    <div className="pointer-events-auto relative h-[calc(100vh-3.5rem)] w-screen overflow-hidden">
-      {/* FULL-SCREEN MARS HORIZON BLUEPRINT 3D STUDIO */}
-      <div className="absolute inset-0 z-0">
-        <Canvas shadows camera={{ position: [0, 3.3, 8.8], fov: 46 }} gl={{ antialias: true }}>
+    <div className="pointer-events-auto relative h-[calc(100vh-3.5rem)] w-screen overflow-hidden bg-[#0A0E17]">
+      {/* AUTHENTIC NASA KENNEDY SPACE CENTER VAB HIGH BAY 16:9 BACKDROP */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <img
+          src="/textures/vab_background.jpg"
+          alt="NASA VAB High Bay"
+          className="absolute inset-0 h-full w-full object-cover object-center filter brightness-90 contrast-105"
+        />
+        {/* Subtle radial & edge vignettes so our 3D rocket and HUD contrast cleanly */}
+        <div className="pointer-events-none absolute inset-0 bg-radial from-transparent via-[#020409]/30 to-[#020409]/75" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#020409]/95 via-transparent to-[#020409]/80" />
+
+        <Canvas shadows camera={{ position: [0, 3.3, 8.8], fov: 46 }} gl={{ antialias: true, alpha: true }} className="relative z-10">
           <VabHangarScene
             rocketConfig={rocketConfig}
             activeSlot={activeSlot}
