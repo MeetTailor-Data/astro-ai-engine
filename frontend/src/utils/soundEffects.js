@@ -22,7 +22,7 @@ class SoundEngine {
    * NASA Mission Control synthesized radio voice callout
    * with authentic Quindar frequency chirps before and after transmission.
    */
-  speakRadioCallout(rawText, priority = false) {
+  speakRadioCallout(rawText, priority = false, speedMultiplier = 1) {
     if (this.muted || typeof window === 'undefined' || !window.speechSynthesis) return;
 
     // Clean text for speech clarity
@@ -39,14 +39,16 @@ class SoundEngine {
     if (!speechText.trim()) return;
 
     try {
-      if (priority) {
+      // If priority, or speed is accelerated (2x/4x), or already speaking backlog, cancel older speech
+      if (priority || speedMultiplier > 1 || window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel();
       }
 
       this.playRadioChirp();
 
       const utterance = new SpeechSynthesisUtterance(speechText);
-      utterance.rate = 1.08;
+      // Accelerate voice rate if user enabled 2x or 4x simulation speed
+      utterance.rate = speedMultiplier > 1 ? Math.min(2.1, 1.15 * Math.sqrt(speedMultiplier)) : 1.1;
       utterance.pitch = 1.0;
       utterance.volume = this.muted ? 0 : 0.85;
 

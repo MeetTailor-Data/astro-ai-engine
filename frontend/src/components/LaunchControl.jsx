@@ -212,7 +212,7 @@ export default function LaunchControl() {
         if (tick.hqCallout) {
           // Do not repeat countdown numbers if already spoken
           if (!['T3', 'T2', 'T1', 'LIFT_COUNT'].includes(tick.hqCalloutKey)) {
-            soundEngine.speakRadioCallout(tick.hqCallout, tick.phase === 'EXPLODING');
+            soundEngine.speakRadioCallout(tick.hqCallout, tick.phase === 'EXPLODING', speedRef.current);
           }
           const tLabel =
             tick.phase === 'COUNTDOWN'
@@ -226,6 +226,7 @@ export default function LaunchControl() {
       },
       (result) => {
         soundEngine.stopThrusterRumble();
+        soundEngine.cancelAllSpeech();
         const outcomeStatus = result?.status || result?.outcome || (result?.willLand ? 'LANDED' : 'CRASHED');
         setFinalOutcome({
           ...result,
@@ -518,6 +519,7 @@ export default function LaunchControl() {
                     type="button"
                     onClick={() => {
                       soundEngine.playClickSound();
+                      soundEngine.cancelAllSpeech();
                       setSpeedMultiplier(spd);
                     }}
                     className={`rounded px-1.5 py-0.5 text-[9px] font-extrabold transition ${

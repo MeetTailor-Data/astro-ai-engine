@@ -20,97 +20,122 @@ function resolveBodyType(selectedMission) {
 function useCurvedPlanetTexture(bodyType) {
   return useMemo(() => {
     const canvas = document.createElement('canvas');
-    canvas.width = 1024;
-    canvas.height = 512;
+    canvas.width = 2048;
+    canvas.height = 1024;
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
 
     if (bodyType === 'mars') {
-      const grad = ctx.createLinearGradient(0, 0, 0, 512);
-      grad.addColorStop(0, '#F8FAFC'); // North ice cap
-      grad.addColorStop(0.08, '#9A3412');
-      grad.addColorStop(0.35, '#C2410C');
-      grad.addColorStop(0.65, '#99350E');
-      grad.addColorStop(0.92, '#7C2D12');
-      grad.addColorStop(1, '#F8FAFC'); // South ice cap
+      const grad = ctx.createLinearGradient(0, 0, 0, 1024);
+      grad.addColorStop(0, '#F8FAFC'); // North Polar Cap
+      grad.addColorStop(0.06, '#9A3412');
+      grad.addColorStop(0.28, '#C2410C');
+      grad.addColorStop(0.5, '#99350E');
+      grad.addColorStop(0.78, '#C2410C');
+      grad.addColorStop(0.94, '#7C2D12');
+      grad.addColorStop(1, '#F8FAFC'); // South Polar Cap
       ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, 1024, 512);
+      ctx.fillRect(0, 0, 2048, 1024);
 
       // Dark basalt plains (Syrtis Major, Acidalia)
-      for (let i = 0; i < 36; i += 1) {
-        ctx.fillStyle = 'rgba(55, 19, 3, 0.52)';
-        ctx.beginPath();
-        const cx = ((i * 137) % 980) + 20;
-        const cy = 60 + ((i * 91) % 390);
-        ctx.ellipse(cx, cy, 38 + (i % 5) * 25, 22 + (i % 4) * 15, (i % 3) * 0.45, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // Valles Marineris canyon scar
-      ctx.strokeStyle = 'rgba(40, 12, 4, 0.85)';
-      ctx.lineWidth = 9;
-      ctx.beginPath();
-      ctx.moveTo(260, 255);
-      ctx.bezierCurveTo(420, 235, 580, 280, 740, 250);
-      ctx.stroke();
-
-      // Craters
-      for (let i = 0; i < 80; i += 1) {
-        const x = ((i * 73) % 980) + 20;
-        const y = 40 + ((i * 107) % 430);
-        const r = 3 + (i % 6) * 3;
-        ctx.fillStyle = 'rgba(80, 25, 8, 0.55)';
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(251, 146, 60, 0.45)';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-      }
-    } else {
-      // Photorealistic Earth Map: Deep blue oceans, green/brown continents, deserts
-      const grad = ctx.createLinearGradient(0, 0, 0, 512);
-      grad.addColorStop(0, '#F0F9FF'); // Arctic ice
-      grad.addColorStop(0.08, '#0C4A6E');
-      grad.addColorStop(0.5, '#0369A1');
-      grad.addColorStop(0.92, '#0C4A6E');
-      grad.addColorStop(1, '#F0F9FF'); // Antarctic ice
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, 1024, 512);
-
-      // Continents
-      const continents = [
-        { x: 230, y: 140, rx: 110, ry: 80, col: '#15803D' }, // N. America
-        { x: 260, y: 190, rx: 70, ry: 55, col: '#A16207' },
-        { x: 330, y: 320, rx: 65, ry: 100, col: '#166534' }, // S. America
-        { x: 640, y: 130, rx: 170, ry: 85, col: '#166534' }, // Eurasia
-        { x: 760, y: 160, rx: 120, ry: 70, col: '#15803D' },
-        { x: 550, y: 180, rx: 60, ry: 40, col: '#A16207' },
-        { x: 540, y: 265, rx: 80, ry: 90, col: '#CA8A04' }, // Sahara
-        { x: 550, y: 340, rx: 70, ry: 80, col: '#15803D' }, // Africa
-        { x: 840, y: 345, rx: 65, ry: 50, col: '#D97706' }, // Australia
+      const basins = [
+        { x: 1380, y: 480, rx: 220, ry: 160 },
+        { x: 740, y: 310, rx: 240, ry: 140 },
+        { x: 1140, y: 580, rx: 300, ry: 130 },
       ];
-      continents.forEach((c) => {
-        ctx.fillStyle = c.col;
+      basins.forEach((b) => {
+        const bg = ctx.createRadialGradient(b.x, b.y, 20, b.x, b.y, b.rx);
+        bg.addColorStop(0, '#381608');
+        bg.addColorStop(0.7, '#58210d');
+        bg.addColorStop(1, 'rgba(154, 52, 18, 0)');
+        ctx.fillStyle = bg;
         ctx.beginPath();
-        ctx.ellipse(c.x, c.y, c.rx, c.ry, 0.15, 0, Math.PI * 2);
+        ctx.ellipse(b.x, b.y, b.rx, b.ry, 0.2, 0, Math.PI * 2);
         ctx.fill();
       });
 
-      // Coastline scatter
-      for (let i = 0; i < 60; i += 1) {
-        const cx = ((i * 127) % 980) + 20;
-        const cy = 60 + ((i * 83) % 390);
-        ctx.fillStyle = i % 2 === 0 ? '#15803D' : '#B45309';
+      // Valles Marineris canyon scar
+      ctx.strokeStyle = '#1e0802';
+      ctx.lineWidth = 14;
+      ctx.beginPath();
+      ctx.moveTo(560, 520);
+      ctx.bezierCurveTo(720, 505, 940, 560, 1120, 530);
+      ctx.stroke();
+
+      // Olympus Mons
+      const olyGrad = ctx.createRadialGradient(420, 430, 10, 420, 430, 95);
+      olyGrad.addColorStop(0, '#5a1d06');
+      olyGrad.addColorStop(0.4, '#d97706');
+      olyGrad.addColorStop(1, 'rgba(154, 52, 18, 0)');
+      ctx.fillStyle = olyGrad;
+      ctx.beginPath();
+      ctx.arc(420, 430, 95, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // NASA Blue Marble Earth 2048x1024
+      const grad = ctx.createLinearGradient(0, 0, 0, 1024);
+      grad.addColorStop(0, '#020b1e');
+      grad.addColorStop(0.12, '#052249');
+      grad.addColorStop(0.4, '#0b3d68');
+      grad.addColorStop(0.5, '#0d4a7a');
+      grad.addColorStop(0.75, '#082d56');
+      grad.addColorStop(0.9, '#031733');
+      grad.addColorStop(1, '#020b1e');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 2048, 1024);
+
+      // Coastal Shallow Water Turquoise Shelves
+      const shelves = [
+        { x: 420, y: 340, rx: 320, ry: 210 },
+        { x: 620, y: 680, rx: 210, ry: 270 },
+        { x: 1100, y: 300, rx: 370, ry: 220 },
+        { x: 1120, y: 600, rx: 260, ry: 280 },
+        { x: 1540, y: 370, rx: 420, ry: 250 },
+        { x: 1720, y: 760, rx: 220, ry: 170 },
+      ];
+      shelves.forEach((s) => {
+        const bg = ctx.createRadialGradient(s.x, s.y, 40, s.x, s.y, Math.max(s.rx, s.ry));
+        bg.addColorStop(0, 'rgba(17, 138, 153, 0.6)');
+        bg.addColorStop(0.8, 'rgba(13, 94, 120, 0.25)');
+        bg.addColorStop(1, 'rgba(13, 74, 122, 0)');
+        ctx.fillStyle = bg;
         ctx.beginPath();
-        ctx.ellipse(cx, cy, 18 + (i % 4) * 12, 12 + (i % 3) * 8, 0.3, 0, Math.PI * 2);
+        ctx.ellipse(s.x, s.y, s.rx + 25, s.ry + 25, 0, 0, Math.PI * 2);
         ctx.fill();
-      }
+      });
+
+      // Continents (North America, South America, Eurasia, Africa, Australia)
+      ctx.fillStyle = '#1b431e';
+      ctx.beginPath();
+      ctx.ellipse(450, 310, 260, 160, -0.1, 0, Math.PI * 2);
+      ctx.ellipse(600, 680, 160, 230, 0.15, 0, Math.PI * 2);
+      ctx.ellipse(1480, 320, 380, 210, 0.05, 0, Math.PI * 2);
+      ctx.ellipse(1120, 600, 210, 240, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Sahara Desert
+      ctx.fillStyle = '#c99a4e';
+      ctx.beginPath();
+      ctx.ellipse(1100, 480, 180, 85, -0.05, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Australian Red Outback
+      ctx.fillStyle = '#b85a2b';
+      ctx.beginPath();
+      ctx.ellipse(1720, 750, 150, 95, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Polar Ice
+      ctx.fillStyle = '#F8FAFC';
+      ctx.fillRect(0, 0, 2048, 55);
+      ctx.fillRect(0, 965, 2048, 65);
     }
 
     const tex = new THREE.CanvasTexture(canvas);
     tex.wrapS = THREE.RepeatWrapping;
     tex.wrapT = THREE.ClampToEdgeWrapping;
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.generateMipmaps = true;
     tex.needsUpdate = true;
     return tex;
   }, [bodyType]);
@@ -119,18 +144,19 @@ function useCurvedPlanetTexture(bodyType) {
 function useEarthCloudsTexture() {
   return useMemo(() => {
     const canvas = document.createElement('canvas');
-    canvas.width = 1024;
-    canvas.height = 512;
+    canvas.width = 2048;
+    canvas.height = 1024;
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
 
-    ctx.clearRect(0, 0, 1024, 512);
-    for (let i = 0; i < 110; i += 1) {
-      const cx = (i * 151) % 1024;
-      const cy = 30 + ((i * 67) % 450);
-      ctx.fillStyle = `rgba(255, 255, 255, ${0.18 + (i % 4) * 0.14})`;
+    ctx.clearRect(0, 0, 2048, 1024);
+    // Dynamic Cloud Formations & Cyclones
+    for (let i = 0; i < 280; i += 1) {
+      const cx = (i * 123) % 2048;
+      const cy = 60 + ((i * 71) % 900);
+      ctx.fillStyle = `rgba(255, 255, 255, ${0.15 + (i % 5) * 0.14})`;
       ctx.beginPath();
-      ctx.ellipse(cx, cy, 40 + (i % 5) * 28, 10 + (i % 3) * 8, -0.12, 0, Math.PI * 2);
+      ctx.ellipse(cx, cy, 65 + (i % 6) * 45, 14 + (i % 4) * 12, (i % 5) * 0.2 - 0.5, 0, Math.PI * 2);
       ctx.fill();
     }
 
@@ -138,6 +164,9 @@ function useEarthCloudsTexture() {
     tex.wrapS = THREE.RepeatWrapping;
     tex.wrapT = THREE.ClampToEdgeWrapping;
     tex.needsUpdate = true;
+    return tex;
+  }, []);
+}
     return tex;
   }, []);
 }
@@ -652,6 +681,14 @@ export default function FlightSimulationScene({
         rocketGroupRef.current.rotation.z = THREE.MathUtils.lerp(rocketGroupRef.current.rotation.z, 0.14, 1 - Math.exp(-3 * delta));
       } else if (phase === 'TERMINAL_DESCENT' || isLanded) {
         rocketGroupRef.current.rotation.z = THREE.MathUtils.lerp(rocketGroupRef.current.rotation.z, 0, 1 - Math.exp(-6 * delta));
+      } else if ((isOrbitalPhase || isOrbited) && !isCrashed) {
+        // LEO Orbit confirmed: pitch to horizontal orbit alignment & rotate satellite nadir-pointing to Earth
+        rocketGroupRef.current.rotation.z = THREE.MathUtils.lerp(
+          rocketGroupRef.current.rotation.z,
+          -Math.PI * 0.48,
+          1 - Math.exp(-2.5 * delta)
+        );
+        rocketGroupRef.current.rotation.y += delta * 0.22;
       } else if (!isPrelaunch && altitudeKm > 2 && !isCrashed) {
         // Subtle gravity turn pitch
         const pitch = Math.min(0.28, (altitudeKm / 80) * 0.28);
@@ -724,8 +761,9 @@ export default function FlightSimulationScene({
     ? 'vacuum'
     : 'liftoff';
 
-  const deployChute = edlDeployed && Boolean(rocketConfig?.edlSystem?.parachute) && bodyType !== 'moon';
-  const deployLegs = edlDeployed && rocketConfig?.edlSystem?.id === 'full_edl_package';
+  const isOrbitalMission = bodyType === 'earth' || isOrbitalPhase || isOrbited;
+  const deployChute = edlDeployed && Boolean(rocketConfig?.edlSystem?.parachute) && !isOrbitalMission && bodyType !== 'moon';
+  const deployLegs = edlDeployed && rocketConfig?.edlSystem?.id === 'full_edl_package' && !isOrbitalMission;
   const heatGlow = (phase === 'ENTRY_DESCENT' || anomalyType === 'NO_HEATSHIELD') && !isLanded;
 
   return (
@@ -832,6 +870,26 @@ export default function FlightSimulationScene({
                 heatGlow={heatGlow}
               />
             </group>
+            {/* Jettisoned Payload Fairing Halves Drifting into Deep Space */}
+            {(isOrbitalPhase || isOrbited) && (
+              <group position={[0, 4.2, 0]}>
+                <mesh position={[-1.3, 0.2, 0]} rotation={[0, 0.2, 0.45]}>
+                  <cylinderGeometry args={[0.55, 0.55, 1.8, 16, 1, false, 0, Math.PI]} />
+                  <meshStandardMaterial color="#FFFFFF" metalness={0.2} roughness={0.4} side={THREE.DoubleSide} />
+                </mesh>
+                <mesh position={[1.3, 0.2, 0]} rotation={[0, -0.2, -0.45]}>
+                  <cylinderGeometry args={[0.55, 0.55, 1.8, 16, 1, false, Math.PI, Math.PI]} />
+                  <meshStandardMaterial color="#FFFFFF" metalness={0.2} roughness={0.4} side={THREE.DoubleSide} />
+                </mesh>
+              </group>
+            )}
+            {/* Orbital Weather Radar Scanning Cone pointing towards Earth */}
+            {(isOrbitalPhase || isOrbited) && bodyType === 'earth' && (
+              <mesh position={[0, -2.6, 0]}>
+                <cylinderGeometry args={[0.15, 3.4, 5.5, 24, 1, true]} />
+                <meshBasicMaterial color="#00F0FF" transparent opacity={0.16} side={THREE.DoubleSide} />
+              </mesh>
+            )}
             <ExhaustPlume mode={exhaustMode} position={[0, stageSeparated ? 3.5 : 0.25, 0]} />
           </>
         )}
