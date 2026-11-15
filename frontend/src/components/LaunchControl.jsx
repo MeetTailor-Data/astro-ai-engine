@@ -111,6 +111,7 @@ export default function LaunchControl() {
   const logContainerRef = useRef(null);
   const prevCountdownRef = useRef(null);
   const prevStageSepRef = useRef(false);
+  const spokenCountdownRef = useRef(new Set());
   const fullTicksRef = useRef([]);
 
   const validationResult = useMemo(
@@ -143,10 +144,11 @@ export default function LaunchControl() {
     setFinalOutcome(null);
     prevCountdownRef.current = null;
     prevStageSepRef.current = false;
+    spokenCountdownRef.current.clear();
     const hasExplodedRef = { current: false };
 
     const missionId = activeMissionId || `sim-${Date.now()}`;
-    setTelemetry((prev) => ({ ...prev, status: 'IN_FLIGHT', phase: 'COUNTDOWN', countdownSec: 15 }));
+    setTelemetry((prev) => ({ ...prev, status: 'IN_FLIGHT', phase: 'COUNTDOWN', countdownSec: 20 }));
 
     try {
       await runMission(missionId);
@@ -170,30 +172,21 @@ export default function LaunchControl() {
           return prev;
         });
 
-        // Countdown audio & synchronized voice countdown (5, 4, 3, 2, 1)
-        if (tick.phase === 'COUNTDOWN' && tick.countdownSec > 0 && tick.countdownSec !== prevCountdownRef.current) {
-          prevCountdownRef.current = tick.countdownSec;
-          if (tick.countdownSec <= 5) {
+        // Exact, zero-drift countdown (5, 4, 3, 2, 1) - fires strictly once per number
+        if (tick.phase === 'COUNTDOWN' && tick.countdownSec >= 1 && tick.countdownSec <= 5) {
+          const sec = tick.countdownSec;
+          if (!spokenCountdownRef.current.has(sec)) {
+            spokenCountdownRef.current.add(sec);
             soundEngine.playCountdownBeep(false);
-            if (tick.countdownSec === 5) {
-              soundEngine.cancelAllSpeech();
-              soundEngine.speakCountdown('Five');
-            } else if (tick.countdownSec === 4) {
-              soundEngine.speakCountdown('Four');
-            } else if (tick.countdownSec === 3) {
-              soundEngine.speakCountdown('Three');
-            } else if (tick.countdownSec === 2) {
-              soundEngine.speakCountdown('Two');
-            } else if (tick.countdownSec === 1) {
-              soundEngine.speakCountdown('One');
-            }
+            const countWords = { 5: 'Five', 4: 'Four', 3: 'Three', 2: 'Two', 1: 'One' };
+            soundEngine.speakCountdown(countWords[sec]);
           }
         }
 
-        // Liftoff thruster rumble & synchronized Liftoff callout
+        // Liftoff thruster rumble & single synchronized Liftoff callout
         if (tick.phase !== 'COUNTDOWN' && tick.status === 'IN_FLIGHT' && tick.phase !== 'EXPLODING') {
-          if (prevCountdownRef.current !== 0) {
-            prevCountdownRef.current = 0;
+          if (!spokenCountdownRef.current.has(0)) {
+            spokenCountdownRef.current.add(0);
             soundEngine.speakCountdown('Liftoff!');
             soundEngine.playCountdownBeep(true);
             soundEngine.startThrusterRumble();

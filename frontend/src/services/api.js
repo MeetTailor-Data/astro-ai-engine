@@ -384,9 +384,7 @@ export function createLocalPhysicsStream({
     // ─── 1. REALISTIC 20-SECOND NASA TERMINAL COUNTDOWN (simTime 0 -> 20) ───
     if (simTime < COUNTDOWN_SEC) {
       phase = 'COUNTDOWN';
-      if (simTime >= 0.2) hqCallout = emitOnce('T20', 'FLIGHT DIRECTOR: Terminal count initiated. Pad-39A is clear.');
-      if (simTime >= 4.0) hqCallout = emitOnce('T16', 'GUIDANCE: Flight computer internal. All stations GO.');
-      if (simTime >= 8.5) hqCallout = emitOnce('T11', 'PROPULSION: Main engine turbopumps spinning up.');
+      if (simTime >= 0.2) hqCallout = emitOnce('T20', 'FLIGHT DIRECTOR: All stations GO for terminal count.');
     } else {
       const flightT = simTime - COUNTDOWN_SEC; // seconds since T-0 liftoff
 
