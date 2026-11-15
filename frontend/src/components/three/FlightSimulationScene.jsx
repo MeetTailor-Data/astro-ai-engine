@@ -48,7 +48,7 @@ function CurvedPlanetGlobe({
   earthCloudsTexture,
   isOrbitalPhase,
   isOrbited,
-  ry,
+  rocketVisualY,
   altitudeKm,
 }) {
   const planetRef = useRef();
@@ -63,11 +63,16 @@ function CurvedPlanetGlobe({
     }
   });
 
+  const planetY =
+    isOrbitalPhase || isOrbited
+      ? (rocketVisualY ?? 18) - 36
+      : -52 - Math.min(24, (altitudeKm - 35) * 0.12);
+
   return (
     <group
       position={[
         0,
-        isOrbitalPhase || isOrbited ? ry - 36 : -52 - Math.min(24, (altitudeKm - 35) * 0.12),
+        planetY,
         isOrbitalPhase || isOrbited ? -6 : -12,
       ]}
     >
@@ -729,7 +734,7 @@ export default function FlightSimulationScene({
           earthCloudsTexture={earthCloudsTexture}
           isOrbitalPhase={isOrbitalPhase}
           isOrbited={isOrbited}
-          ry={ry}
+          rocketVisualY={rocketVisualY}
           altitudeKm={altitudeKm}
         />
       )}

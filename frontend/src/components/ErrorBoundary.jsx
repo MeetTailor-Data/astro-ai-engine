@@ -42,6 +42,11 @@ export default class ErrorBoundary extends React.Component {
               <div className="font-semibold text-rose-200">
                 {this.state.error?.name || 'Error'}: {this.state.error?.message || 'Unknown runtime exception'}
               </div>
+              {this.state.error?.stack && (
+                <pre className="mt-2 max-h-32 overflow-auto text-[10px] text-rose-400/80 whitespace-pre-wrap">
+                  {this.state.error.stack.split('\n').slice(0, 4).join('\n')}
+                </pre>
+              )}
             </div>
 
             <p className="mt-4 text-xs text-slate-300">
