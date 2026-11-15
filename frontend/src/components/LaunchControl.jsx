@@ -104,8 +104,8 @@ export default function LaunchControl() {
     { id: 'init-1', time: 'T-00:05', text: 'FLIGHT DIRECTOR: Vehicle on internal power. Pad-39A cleared for launch.' },
   ]);
   const [finalOutcome, setFinalOutcome] = useState(null);
-  const [autoAdvance, setAutoAdvance] = useState(true);
-  const [finaleSecondsLeft, setFinaleSecondsLeft] = useState(3);
+  const [autoAdvance, setAutoAdvance] = useState(false);
+  const [finaleSecondsLeft, setFinaleSecondsLeft] = useState(8);
 
   const streamRef = useRef(null);
   const logContainerRef = useRef(null);
@@ -194,10 +194,12 @@ export default function LaunchControl() {
         }
 
         // Catastrophic vehicle detonation in 3D
-        if (tick.phase === 'EXPLODING' && !hasExplodedRef.current) {
+        if ((tick.phase === 'EXPLODING' || tick.status === 'CRASHED') && !hasExplodedRef.current) {
           hasExplodedRef.current = true;
           soundEngine.stopThrusterRumble();
           soundEngine.playCatastrophicExplosionSound();
+          setCameraMode('TRACKING'); // Switch from destroyed onboard rocket-cam to mission control tracking cam!
+          setAutoAdvance(false);
         }
 
         // Stage separation pneumatic clunk
@@ -266,15 +268,15 @@ export default function LaunchControl() {
     setCurrentStep(MISSION_STEPS.MISSION_OUTCOME);
   }, [finalOutcome, setTelemetryLog, setMissionResult, setCurrentStep]);
 
-  // 3-second cinematic slow-motion finale + optional auto-advance to MISSION_OUTCOME
+  // Optional auto-advance to MISSION_OUTCOME
   useEffect(() => {
     if (!finalOutcome) {
-      setFinaleSecondsLeft(3);
+      setFinaleSecondsLeft(8);
       return undefined;
     }
     if (!autoAdvance) return undefined;
 
-    setFinaleSecondsLeft(3);
+    setFinaleSecondsLeft(8);
     const interval = setInterval(() => {
       setFinaleSecondsLeft((prev) => {
         if (prev <= 1) {

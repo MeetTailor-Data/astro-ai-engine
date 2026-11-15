@@ -17,6 +17,131 @@ function resolveBodyType(selectedMission) {
   return 'earth';
 }
 
+function useCurvedPlanetTexture(bodyType) {
+  return useMemo(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    if (bodyType === 'mars') {
+      const grad = ctx.createLinearGradient(0, 0, 0, 512);
+      grad.addColorStop(0, '#F8FAFC'); // North ice cap
+      grad.addColorStop(0.08, '#9A3412');
+      grad.addColorStop(0.35, '#C2410C');
+      grad.addColorStop(0.65, '#99350E');
+      grad.addColorStop(0.92, '#7C2D12');
+      grad.addColorStop(1, '#F8FAFC'); // South ice cap
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 1024, 512);
+
+      // Dark basalt plains (Syrtis Major, Acidalia)
+      for (let i = 0; i < 36; i += 1) {
+        ctx.fillStyle = 'rgba(55, 19, 3, 0.52)';
+        ctx.beginPath();
+        const cx = ((i * 137) % 980) + 20;
+        const cy = 60 + ((i * 91) % 390);
+        ctx.ellipse(cx, cy, 38 + (i % 5) * 25, 22 + (i % 4) * 15, (i % 3) * 0.45, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Valles Marineris canyon scar
+      ctx.strokeStyle = 'rgba(40, 12, 4, 0.85)';
+      ctx.lineWidth = 9;
+      ctx.beginPath();
+      ctx.moveTo(260, 255);
+      ctx.bezierCurveTo(420, 235, 580, 280, 740, 250);
+      ctx.stroke();
+
+      // Craters
+      for (let i = 0; i < 80; i += 1) {
+        const x = ((i * 73) % 980) + 20;
+        const y = 40 + ((i * 107) % 430);
+        const r = 3 + (i % 6) * 3;
+        ctx.fillStyle = 'rgba(80, 25, 8, 0.55)';
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(251, 146, 60, 0.45)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+    } else {
+      // Photorealistic Earth Map: Deep blue oceans, green/brown continents, deserts
+      const grad = ctx.createLinearGradient(0, 0, 0, 512);
+      grad.addColorStop(0, '#F0F9FF'); // Arctic ice
+      grad.addColorStop(0.08, '#0C4A6E');
+      grad.addColorStop(0.5, '#0369A1');
+      grad.addColorStop(0.92, '#0C4A6E');
+      grad.addColorStop(1, '#F0F9FF'); // Antarctic ice
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 1024, 512);
+
+      // Continents
+      const continents = [
+        { x: 230, y: 140, rx: 110, ry: 80, col: '#15803D' }, // N. America
+        { x: 260, y: 190, rx: 70, ry: 55, col: '#A16207' },
+        { x: 330, y: 320, rx: 65, ry: 100, col: '#166534' }, // S. America
+        { x: 640, y: 130, rx: 170, ry: 85, col: '#166534' }, // Eurasia
+        { x: 760, y: 160, rx: 120, ry: 70, col: '#15803D' },
+        { x: 550, y: 180, rx: 60, ry: 40, col: '#A16207' },
+        { x: 540, y: 265, rx: 80, ry: 90, col: '#CA8A04' }, // Sahara
+        { x: 550, y: 340, rx: 70, ry: 80, col: '#15803D' }, // Africa
+        { x: 840, y: 345, rx: 65, ry: 50, col: '#D97706' }, // Australia
+      ];
+      continents.forEach((c) => {
+        ctx.fillStyle = c.col;
+        ctx.beginPath();
+        ctx.ellipse(c.x, c.y, c.rx, c.ry, 0.15, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Coastline scatter
+      for (let i = 0; i < 60; i += 1) {
+        const cx = ((i * 127) % 980) + 20;
+        const cy = 60 + ((i * 83) % 390);
+        ctx.fillStyle = i % 2 === 0 ? '#15803D' : '#B45309';
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, 18 + (i % 4) * 12, 12 + (i % 3) * 8, 0.3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.ClampToEdgeWrapping;
+    tex.needsUpdate = true;
+    return tex;
+  }, [bodyType]);
+}
+
+function useEarthCloudsTexture() {
+  return useMemo(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    ctx.clearRect(0, 0, 1024, 512);
+    for (let i = 0; i < 110; i += 1) {
+      const cx = (i * 151) % 1024;
+      const cy = 30 + ((i * 67) % 450);
+      ctx.fillStyle = `rgba(255, 255, 255, ${0.18 + (i % 4) * 0.14})`;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, 40 + (i % 5) * 28, 10 + (i % 3) * 8, -0.12, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.ClampToEdgeWrapping;
+    tex.needsUpdate = true;
+    return tex;
+  }, []);
+}
+
 function LatticeLaunchTower({ clampsOpen }) {
   const upperArmRef = useRef();
   const lowerArmRef = useRef();
@@ -448,6 +573,8 @@ export default function FlightSimulationScene({
   const detachedBoosterRef = useRef();
 
   const bodyType = useMemo(() => resolveBodyType(selectedMission), [selectedMission]);
+  const curvedPlanetTexture = useCurvedPlanetTexture(bodyType);
+  const earthCloudsTexture = useEarthCloudsTexture();
   const altitudeKm = telemetry?.altitudeKm ?? 0;
   const phase = telemetry?.phase ?? 'PRELAUNCH';
   const status = telemetry?.status ?? 'PRELAUNCH';
@@ -615,16 +742,37 @@ export default function FlightSimulationScene({
       {/* White 3D Clouds rushing downward during ascent */}
       <VolumetricClouds altitudeKm={altitudeKm} active={!isDescending && !isLanded} />
 
-      {/* Glowing Curved Earth Horizon below when high in atmosphere / space */}
+      {/* Photorealistic Curved Earth or Mars Globe below when high in atmosphere / space */}
       {showCurvedEarth && (
         <group position={[0, -52 - Math.min(24, (altitudeKm - 35) * 0.12), -12]}>
-          <mesh>
-            <sphereGeometry args={[48, 48, 36]} />
-            <meshStandardMaterial color="#0369A1" roughness={0.7} />
+          <mesh rotation={[0.4, 0.6, 0]}>
+            <sphereGeometry args={[48, 64, 48]} />
+            <meshStandardMaterial
+              map={curvedPlanetTexture}
+              roughness={0.78}
+              metalness={0.06}
+            />
           </mesh>
+          {bodyType === 'earth' && (
+            <mesh rotation={[0.3, 0.75, 0]}>
+              <sphereGeometry args={[48.45, 48, 36]} />
+              <meshStandardMaterial
+                map={earthCloudsTexture}
+                transparent
+                opacity={0.38}
+                roughness={1.0}
+              />
+            </mesh>
+          )}
+          {/* Atmospheric Rayleigh Blue / Mars Haze Halo */}
           <mesh>
-            <sphereGeometry args={[48.6, 40, 32]} />
-            <meshBasicMaterial color="#38BDF8" transparent opacity={0.22} side={THREE.BackSide} />
+            <sphereGeometry args={[49.2, 48, 36]} />
+            <meshBasicMaterial
+              color={bodyType === 'mars' ? '#FB923C' : '#38BDF8'}
+              transparent
+              opacity={0.28}
+              side={THREE.BackSide}
+            />
           </mesh>
         </group>
       )}
@@ -667,25 +815,30 @@ export default function FlightSimulationScene({
         descentActive={isDescending}
       />
 
-      {/* Main Rocket Vehicle */}
-      {!isCrashed && (
-        <group ref={rocketGroupRef} position={[0, 0, 0]}>
-          <group position={[0, -0.5, 0]}>
-            <ModularRocket3D
-              rocketConfig={rocketConfig}
-              activeSlot={null}
-              nextEmptySlot={null}
-              xrayMode={false}
-              showSpatialLabels={false}
-              stageFilter={stageSeparated ? 'upper_only' : 'all'}
-              deployLegs={deployLegs}
-              deployChute={deployChute}
-              heatGlow={heatGlow}
-            />
-          </group>
-          <ExhaustPlume mode={exhaustMode} position={[0, stageSeparated ? 3.5 : 0.25, 0]} />
-        </group>
-      )}
+      {/* Main Rocket Vehicle & Explosive Detonation Anchor */}
+      <group ref={rocketGroupRef} position={[0, 0, 0]}>
+        {!isCrashed && (
+          <>
+            <group position={[0, -0.5, 0]}>
+              <ModularRocket3D
+                rocketConfig={rocketConfig}
+                activeSlot={null}
+                nextEmptySlot={null}
+                xrayMode={false}
+                showSpatialLabels={false}
+                stageFilter={stageSeparated ? 'upper_only' : 'all'}
+                deployLegs={deployLegs}
+                deployChute={deployChute}
+                heatGlow={heatGlow}
+              />
+            </group>
+            <ExhaustPlume mode={exhaustMode} position={[0, stageSeparated ? 3.5 : 0.25, 0]} />
+          </>
+        )}
+
+        {/* Dramatic 3D Fireball, Shockwave & Shattered Debris at Exact Vehicle Coordinates */}
+        <ExplosionEffect active={isCrashed} position={[0, 1.2, 0]} />
+      </group>
 
       {/* Tumbling Detached First Stage + SRBs */}
       {stageSeparated && !isDescending && !isLanded && !isOrbited && !isCrashed && (
@@ -699,9 +852,6 @@ export default function FlightSimulationScene({
           </group>
         </group>
       )}
-
-      {/* Dramatic 3D Fireball, Shockwave & Debris on Crash */}
-      <ExplosionEffect active={isCrashed} position={[0, Math.max(1.5, rocketVisualY + 1.5), 0]} />
     </group>
   );
 }
