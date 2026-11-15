@@ -95,7 +95,13 @@ graph TD
 
 ## 🎮 Game Architecture & Key Features
 
-### 1. Collaborative Team Go/No-Go Console (1–4 Players)
+### 1. Authentic NASA Kennedy Space Center 3D VAB Staging
+Players configure rockets inside a photorealistic reconstruction of NASA's **Vehicle Assembly Building (VAB) High Bay**:
+* Framed by authentic structural steel towers, crane gantries, and industrial halogen floodlighting.
+* 360° interactive turntable staging with mobile launcher platform and real-time center-of-mass balance.
+* Modular 6-slot rocket anatomy (Nosecone, Avionics/Payload, EDL System, Upper Stage, Propellant Tank, Main Booster).
+
+### 2. Collaborative Team Go/No-Go Console (1–4 Players)
 Before rollout to Pad-39A, teams conduct a live **Flight Readiness Review (FRR)**. Designed for solo players or cooperative teams of up to 4:
 * **PROPULSION:** Clears TWR ($\ge 1.25$), Max-Q limits ($\le 5.0$), and target $\Delta V$ requirements.
 * **SPACECRAFT:** Verifies payload bus matching, EDL system (heatshield/parachutes/retro-jets), and fairing protection.
@@ -103,20 +109,29 @@ Before rollout to Pad-39A, teams conduct a live **Flight Readiness Review (FRR)*
 * **MISSION DIRECTOR:** Enforces project budget compliance and final launch authorization.
 * *Interlock Feature:* The Mission Director cannot vote GO until all three disciplines are verified green. Any vehicle redesign automatically resets all approvals.
 
-### 2. Chief Engineer Maya (Live Advisory System)
+### 3. Photorealistic Planetary Environments & Touchdown Dynamics
+* **Earth (LEO SSO Orbit):** High-resolution Blue Marble globe with atmospheric Rayleigh scattering, animated translucent cloud deck, and solar array unfolding.
+* **The Moon (Shackleton Crater):** Detailed lunar basalt maria and impact craters, powered retro-thruster terminal descent, and rover rollout beneath the distant Earth.
+* **Mars (Jezero Crater Delta):** Red Martian atmosphere, canyon ridges, Olympus Mons topographic features, and Perseverance-class exploration rover deployment.
+
+### 4. Synchronized Cryogenic Launch Countdown Sequencer
+* Authentic NASA T-15s automated countdown with cryogenic venting vapor and launch clamp releases.
+* Real-time synthesized speech audio engine providing zero-latency mission director callouts without external audio assets.
+
+### 5. Chief Engineer Maya (Live Advisory System)
 When configurations violate physical flight envelopes, Chief Engineer Maya provides live audio-visual advisories and **Avionics Remediation Directives** (e.g., advising propellant mass shifts, engine cycle changes, or fairing reinforcements).
 
-### 3. Real-Time Flight & EDL Simulation
+### 6. Real-Time Flight & EDL Simulation
 * Atmospheric ascent physics calculating dynamic pressure ($Q$), air density decay, and thrust curves.
 * Staging events: Booster separation, stage ignition, fairing jettison above dense atmosphere, orbital insertion burn, and Entry, Descent & Landing (EDL) sequences.
 
-### 4. NASA Mission Heritage Lineage Match
+### 7. NASA Mission Heritage Lineage Match
 Successful flights are automatically benchmarked against real NASA exploration missions:
 * **LEO Sun-Synchronous:** NOAA-20 / JPSS-1 Weather Sentinel Lineage.
 * **Lunar Surface:** Surveyor 1 & Apollo Lunar Module Descent Lineage.
 * **Mars Interplanetary:** Mars 2020 Perseverance & Curiosity Sky-Crane Lineage.
 
-### 5. Responsive Hardware Advisory
+### 8. Responsive Hardware Advisory
 AESTRO AI includes an automated client-side device advisory (`MobileBlocker.jsx`) that detects mobile devices and prompts users to open the game on a desktop workstation or toggle desktop landscape mode for optimal 3D WebGL performance.
 
 ---
@@ -141,6 +156,8 @@ AESTRO AI includes an automated client-side device advisory (`MobileBlocker.jsx`
 2. **NASA Systems Engineering Handbook (SP-2016-6105 Rev 2):** Systems engineering lifecycle and trade-off matrices.
 3. **NASA Jet Propulsion Laboratory (JPL) DSN Handbook:** Deep space communications link budget formulas and frequency bands.
 4. **NASA Technical Reports Server (NTRS):** Mars 2020 Entry, Descent, and Landing (EDL) flight envelope specifications.
+5. **NASA Kennedy Space Center Vehicle Assembly Building (VAB):** High-Bay structural geometry and mobile launcher staging baselines.
+6. **NASA Scientific Visualization Studio (SVS):** Planetary topography textures, CGI Moon kit, and Mars MOLA crater elevation datasets.
 
 ### AI & Automated Algorithms
 * **Deterministic Optimization Engine:** AESTRO AI utilizes an automated constraint-satisfaction solver and real-time state vector evaluation routines rather than black-box machine learning, adhering to NASA's mission-critical requirement that spaceflight trajectories and life-support margins follow verifiable physical laws.
