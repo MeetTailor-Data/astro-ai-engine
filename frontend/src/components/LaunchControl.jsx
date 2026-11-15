@@ -194,8 +194,7 @@ export default function LaunchControl() {
         if (tick.phase !== 'COUNTDOWN' && tick.status === 'IN_FLIGHT' && tick.phase !== 'EXPLODING') {
           if (prevCountdownRef.current !== 0) {
             prevCountdownRef.current = 0;
-            soundEngine.cancelAllSpeech();
-            soundEngine.speakCountdown('Liftoff! We have liftoff!');
+            soundEngine.speakCountdown('Liftoff!');
             soundEngine.playCountdownBeep(true);
             soundEngine.startThrusterRumble();
           }

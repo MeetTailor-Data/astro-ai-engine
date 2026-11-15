@@ -385,9 +385,8 @@ export function createLocalPhysicsStream({
     if (simTime < COUNTDOWN_SEC) {
       phase = 'COUNTDOWN';
       if (simTime >= 0.2) hqCallout = emitOnce('T20', 'FLIGHT DIRECTOR: Terminal count initiated. Pad-39A is clear.');
-      if (simTime >= 5.0) hqCallout = emitOnce('T15', 'GUIDANCE: Flight computer internal. All stations GO for launch.');
-      if (simTime >= 10.0) hqCallout = emitOnce('T10', 'PROPULSION: Main engine turbopumps spinning up.');
-      if (simTime >= 13.5) hqCallout = emitOnce('T6', 'FIDO: Water deluge sound suppression armed.');
+      if (simTime >= 4.0) hqCallout = emitOnce('T16', 'GUIDANCE: Flight computer internal. All stations GO.');
+      if (simTime >= 8.5) hqCallout = emitOnce('T11', 'PROPULSION: Main engine turbopumps spinning up.');
     } else {
       const flightT = simTime - COUNTDOWN_SEC; // seconds since T-0 liftoff
 
@@ -400,8 +399,8 @@ export function createLocalPhysicsStream({
           velocityMs = Math.round(18 * Math.cos(p * Math.PI * 0.5));
           fuelPct = Math.max(76, 100 - flightT * 2.0);
           gForce = 0.94;
-          if (flightT >= 0.2) hqCallout = emitOnce('TWR_LIFT', 'FLIGHT DIRECTOR: Liftoff! Rocket struggling to clear umbilical tower.');
-          if (flightT >= 5.5) hqCallout = emitOnce('TWR_WARN', 'PROPULSION: WARNING — Thrust deficit! TWR < 1.25, vehicle losing vertical momentum!');
+          if (flightT >= 3.5) hqCallout = emitOnce('TWR_LIFT', 'PROPULSION: Vehicle struggling to clear umbilical tower — thrust deficit detected.');
+          if (flightT >= 6.5) hqCallout = emitOnce('TWR_WARN', 'PROPULSION: WARNING — Thrust deficit! TWR < 1.25, vehicle losing vertical momentum!');
         } else {
           // Explosive pad impact & fireball
           if (!explodingStartTime) explodingStartTime = simTime;
@@ -444,7 +443,7 @@ export function createLocalPhysicsStream({
           fuelPct = Math.max(54, 100 - p * 46);
           gForce = failureCode === 'OVER_G' ? 2.2 + p * 3.8 : 1.4 + p * 1.6;
 
-          if (flightT >= 0.2) hqCallout = emitOnce('MQ_LIFT', 'FLIGHT DIRECTOR: Liftoff! Rocket has cleared the launch tower.');
+          if (flightT >= 4.5) hqCallout = emitOnce('MQ_LIFT', 'GUIDANCE: Vehicle has cleared the launch tower.');
           if (flightT >= 15.0) hqCallout = emitOnce('MQ_MACH1', 'FIDO: Vehicle is transonic. Passing Mach 1.');
           if (flightT >= 28.0) {
             hqCallout = emitOnce(
@@ -501,7 +500,7 @@ export function createLocalPhysicsStream({
           velocityMs = Math.pow(p, 1.2) * 240;
           fuelPct = 100 - p * 12;
           gForce = 1.25 + p * 0.45;
-          if (flightT >= 0.2) hqCallout = emitOnce('LIFT_OK', 'FLIGHT DIRECTOR: Liftoff! Rocket has cleared Pad-39A. Pitch and roll program initiated.');
+          if (flightT >= 4.5) hqCallout = emitOnce('LIFT_OK', 'GUIDANCE: Vehicle has cleared the umbilical tower. Pitch and roll program nominal.');
           if (flightT >= 10.0) hqCallout = emitOnce('PITCH_OK', 'GUIDANCE: Trajectory is nominal. Rocket pitching downrange along flight azimuth.');
         }
         // Phase 2: Transonic & Max-Q (18 -> 45s)
