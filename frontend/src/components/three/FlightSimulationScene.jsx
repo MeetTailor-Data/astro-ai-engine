@@ -167,9 +167,6 @@ function useEarthCloudsTexture() {
     return tex;
   }, []);
 }
-    return tex;
-  }, []);
-}
 
 function LatticeLaunchTower({ clampsOpen }) {
   const upperArmRef = useRef();
