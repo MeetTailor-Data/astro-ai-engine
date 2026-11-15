@@ -173,18 +173,20 @@ export default function LaunchControl() {
         // Countdown audio & synchronized voice countdown (5, 4, 3, 2, 1)
         if (tick.phase === 'COUNTDOWN' && tick.countdownSec > 0 && tick.countdownSec !== prevCountdownRef.current) {
           prevCountdownRef.current = tick.countdownSec;
-          soundEngine.playCountdownBeep(false);
-          if (tick.countdownSec === 5) {
-            soundEngine.cancelAllSpeech();
-            soundEngine.speakCountdown('Five');
-          } else if (tick.countdownSec === 4) {
-            soundEngine.speakCountdown('Four');
-          } else if (tick.countdownSec === 3) {
-            soundEngine.speakCountdown('Three');
-          } else if (tick.countdownSec === 2) {
-            soundEngine.speakCountdown('Two');
-          } else if (tick.countdownSec === 1) {
-            soundEngine.speakCountdown('One');
+          if (tick.countdownSec <= 5) {
+            soundEngine.playCountdownBeep(false);
+            if (tick.countdownSec === 5) {
+              soundEngine.cancelAllSpeech();
+              soundEngine.speakCountdown('Five');
+            } else if (tick.countdownSec === 4) {
+              soundEngine.speakCountdown('Four');
+            } else if (tick.countdownSec === 3) {
+              soundEngine.speakCountdown('Three');
+            } else if (tick.countdownSec === 2) {
+              soundEngine.speakCountdown('Two');
+            } else if (tick.countdownSec === 1) {
+              soundEngine.speakCountdown('One');
+            }
           }
         }
 

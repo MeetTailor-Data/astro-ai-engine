@@ -378,16 +378,16 @@ export function createLocalPhysicsStream({
     let edlDeployed = false;
     let anomalyType = null;
     let status = 'IN_FLIGHT';
-    const COUNTDOWN_SEC = 15;
+    const COUNTDOWN_SEC = 20;
     const countdownSec = simTime < COUNTDOWN_SEC ? Math.max(0, Math.ceil(COUNTDOWN_SEC - simTime)) : 0;
 
-    // ─── 1. REALISTIC 15-SECOND NASA TERMINAL COUNTDOWN (simTime 0 -> 15) ───
+    // ─── 1. REALISTIC 20-SECOND NASA TERMINAL COUNTDOWN (simTime 0 -> 20) ───
     if (simTime < COUNTDOWN_SEC) {
       phase = 'COUNTDOWN';
-      if (simTime >= 0.2) hqCallout = emitOnce('T15', 'FLIGHT DIRECTOR: Terminal count initiated. Pad-39A cleared.');
-      if (simTime >= 3.2) hqCallout = emitOnce('T12', 'GUIDANCE: Flight computer internal. All stations GO for launch.');
-      if (simTime >= 6.2) hqCallout = emitOnce('T9', 'PROPULSION: Main engine turbopumps spinning up.');
-      if (simTime >= 8.2) hqCallout = emitOnce('T7', 'FIDO: Sound suppression deluge active.');
+      if (simTime >= 0.2) hqCallout = emitOnce('T20', 'FLIGHT DIRECTOR: Terminal count initiated. Pad-39A is clear.');
+      if (simTime >= 5.0) hqCallout = emitOnce('T15', 'GUIDANCE: Flight computer internal. All stations GO for launch.');
+      if (simTime >= 10.0) hqCallout = emitOnce('T10', 'PROPULSION: Main engine turbopumps spinning up.');
+      if (simTime >= 13.5) hqCallout = emitOnce('T6', 'FIDO: Water deluge sound suppression armed.');
     } else {
       const flightT = simTime - COUNTDOWN_SEC; // seconds since T-0 liftoff
 

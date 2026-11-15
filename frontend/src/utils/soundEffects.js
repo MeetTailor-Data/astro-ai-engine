@@ -39,8 +39,8 @@ class SoundEngine {
     if (!speechText.trim()) return;
 
     try {
-      // If priority, or speed is accelerated (2x/4x), or already speaking backlog, cancel older speech
-      if (priority || speedMultiplier > 1 || window.speechSynthesis.speaking) {
+      // Only cancel immediately if priority callout (e.g. Explosion/Critical Failure)
+      if (priority) {
         window.speechSynthesis.cancel();
       }
 
@@ -48,7 +48,7 @@ class SoundEngine {
 
       const utterance = new SpeechSynthesisUtterance(speechText);
       // Accelerate voice rate if user enabled 2x or 4x simulation speed
-      utterance.rate = speedMultiplier > 1 ? Math.min(2.1, 1.15 * Math.sqrt(speedMultiplier)) : 1.1;
+      utterance.rate = speedMultiplier > 1 ? Math.min(2.1, 1.15 * Math.sqrt(speedMultiplier)) : 1.08;
       utterance.pitch = 1.0;
       utterance.volume = this.muted ? 0 : 0.85;
 
@@ -76,16 +76,15 @@ class SoundEngine {
   }
 
   /**
-   * Ultra-crisp, zero-latency countdown speaker (3, 2, 1, Liftoff!).
-   * Cancels any pending background speech immediately so numbers match the screen in real-time.
+   * Ultra-crisp countdown speaker (5, 4, 3, 2, 1, Liftoff!).
+   * Natural broadcast cadence without violent mid-word cancellation.
    */
   speakCountdown(word) {
     if (this.muted || typeof window === 'undefined' || !window.speechSynthesis) return;
     try {
-      window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(word);
-      utterance.rate = 1.18;
-      utterance.pitch = 1.05;
+      utterance.rate = 1.15;
+      utterance.pitch = 1.02;
       utterance.volume = this.muted ? 0 : 0.95;
 
       const voices = window.speechSynthesis.getVoices();
