@@ -24,25 +24,25 @@ Rather than relying on simplified arcade mechanics, AESTRO AI challenges players
 
 The complete mission design lifecycle in AESTRO AI:
 
-| 01. Mission Selection & Dossier | 02. 3D Vehicle Assembly Building (VAB) |
+| 01. Mission Selection & Dossier | 02. Lunar Surface Touchdown (Moon Success) |
 |:---:|:---:|
-| ![Mission Selection](screenshots/01_mission_selection.jpg) | ![VAB Assembly](screenshots/02_vab_hangar_assembly.jpg) |
-| *Browse planetary mission contracts (LEO Sentinel, Lunar Lander, Mars Rover) with CML-1 requirements.* | *Modular 6-slot rocket assembly inside authentic NASA Kennedy Space Center High-Bay VAB with interactive 360° WebGL inspection.* |
+| ![Mission Selection](screenshots/01_mission_selection.jpg) | ![Lunar Touchdown](screenshots/02_vab_hangar_assembly.jpg) |
+| *Browse planetary mission contracts (LEO Sentinel, Lunar Lander, Mars Rover) with CML-1 requirements.* | *Lunar crater landing confirmed with powered retro-thrusters, rover rollout, and Earth in the dark lunar sky.* |
 
-| 03. Subsystem & Propellant Tuning | 04. 6-Resource Telemetry & Readiness |
+| 03. 3D VAB Assembly & Propellant Tuning | 04. Martian Surface Landing (Mars Success) |
 |:---:|:---:|
-| ![Subsystem Tuning](screenshots/03_subsystem_configuration.jpg) | ![Resource Telemetry](screenshots/04_six_resource_telemetry.png) |
-| *Optimize engine cycles, propellants (Hydrolox, Methalox, RP-1), and fuel tank sizing.* | *Live budget caps, power margins, and Chief Engineer Maya's Avionics Remediation Directives.* |
+| ![Subsystem Tuning](screenshots/03_subsystem_configuration.jpg) | ![Martian Landing](screenshots/04_six_resource_telemetry.png) |
+| *Modular 6-slot rocket configuration inside authentic NASA KSC High-Bay VAB with interactive 3D WebGL inspection.* | *Interplanetary Mars EDL touchdown confirmed with heatshield entry, terrain exploration rover, and Perseverance lineage.* |
 
-| 05. Launchpad Staging & Countdown | 06. In-Flight Ascent Telemetry |
+| 05. Launchpad Staging & Countdown | 06. In-Flight Powered Ascent Telemetry |
 |:---:|:---:|
 | ![Countdown](screenshots/05_launch_control_countdown.jpg) | ![Ascent Telemetry](screenshots/06_live_flight_telemetry.jpg) |
 | *Automated T-15s cryogenic launch sequencer with synchronized voice countdown and pad stabilization.* | *Real-time telemetry graphs: Altitude, velocity, dynamic pressure (Q), and G-force over curved Earth.* |
 
-| 07. Mission Debrief & Scoring | 08. Multi-Camera Launch Tracking |
+| 07. Mission Debrief & Scoring | 08. 1–4 Player Team Go/No-Go Console |
 |:---:|:---:|
-| ![Mission Debrief](screenshots/07_post_flight_debrief.jpg) | ![Launch Tracking](screenshots/08_rocket_liftoff_telemetry.jpg) |
-| *0–1000 objective scoring, letter grades (S–F), radar performance telemetry, and local mission leaderboards.* | *Real-time exhaust particle physics, camera tracking (Pad Cam, Tracking Cam, Rocket Cam), and pad telemetry.* |
+| ![Mission Debrief](screenshots/07_post_flight_debrief.jpg) | ![Team Console](screenshots/08_rocket_liftoff_telemetry.jpg) |
+| *0–1000 objective scoring, letter grades (S–F), radar performance telemetry, and local mission leaderboards.* | *Collaborative Flight Readiness Review: Propulsion, Spacecraft, Power & Comms, and Mission Director interlocks.* |
 
 | 09. Orbit Confirmed & NASA Heritage |
 |:---:|
