@@ -34,10 +34,10 @@ The complete mission design lifecycle in AESTRO AI:
 | ![Subsystem Tuning](screenshots/03_subsystem_configuration.jpg) | ![Martian Landing](screenshots/04_six_resource_telemetry.png) |
 | *Modular 6-slot rocket configuration inside authentic NASA KSC High-Bay VAB with interactive 3D WebGL inspection.* | *Interplanetary Mars EDL touchdown confirmed with heatshield entry, terrain exploration rover, and Perseverance lineage.* |
 
-| 05. Launchpad Staging & Countdown | 06. In-Flight Powered Ascent Telemetry |
+| 05. 3D Mars Red Planet & Deep Space Dossier | 06. In-Flight Powered Ascent Telemetry |
 |:---:|:---:|
-| ![Countdown](screenshots/05_launch_control_countdown.jpg) | ![Ascent Telemetry](screenshots/06_live_flight_telemetry.jpg) |
-| *Automated T-15s cryogenic launch sequencer with synchronized voice countdown and pad stabilization.* | *Real-time telemetry graphs: Altitude, velocity, dynamic pressure (Q), and G-force over curved Earth.* |
+| ![Mars Red Planet](screenshots/05_launch_control_countdown.jpg) | ![Ascent Telemetry](screenshots/06_live_flight_telemetry.jpg) |
+| *Interactive 3D Red Planet Mars with Olympus Mons, Valles Marineris canyon, and Jezero Crater EDL dossier.* | *Real-time telemetry graphs: Altitude, velocity, dynamic pressure (Q), and G-force over curved Earth.* |
 
 | 07. Mission Debrief & Scoring | 08. 1–4 Player Team Go/No-Go Console |
 |:---:|:---:|
