@@ -617,12 +617,22 @@ export default function SolarSystemScene({ activePlanetKey, onSelectPlanet }) {
   const moonRef = useRef();
   const marsRef = useRef();
 
+  // Load Authentic High-Resolution NASA Satellite Maps (2K Blue Marble, SVS Moon, Viking Mars)
   const textures = useMemo(() => {
+    const loader = new THREE.TextureLoader();
+    const loadTex = (url) => {
+      const tex = loader.load(url);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.wrapS = THREE.RepeatWrapping;
+      return tex;
+    };
+
     return {
-      earth: createProceduralTexture('earth'),
-      earthClouds: createProceduralTexture('earthClouds'),
-      moon: createProceduralTexture('moon'),
-      mars: createProceduralTexture('mars'),
+      earth: loadTex('/textures/earth.jpg'),
+      earthClouds: loadTex('/textures/clouds.png'),
+      specular: loadTex('/textures/specular.jpg'),
+      moon: loadTex('/textures/moon.jpg'),
+      mars: loadTex('/textures/mars.jpg'),
     };
   }, []);
 
@@ -636,14 +646,14 @@ export default function SolarSystemScene({ activePlanetKey, onSelectPlanet }) {
 
   useEffect(() => {
     return () => {
-      Object.values(textures).forEach((t) => t.dispose());
-      Object.values(shaders).forEach((s) => s.dispose());
+      Object.values(textures).forEach((t) => t?.dispose?.());
+      Object.values(shaders).forEach((s) => s?.dispose?.());
     };
   }, [textures, shaders]);
 
   useFrame((_, delta) => {
     if (earthRef.current) earthRef.current.rotation.y += delta * 0.14;
-    if (earthCloudsRef.current) earthCloudsRef.current.rotation.y += delta * 0.2;
+    if (earthCloudsRef.current) earthCloudsRef.current.rotation.y += delta * 0.18;
     if (moonRef.current) moonRef.current.rotation.y += delta * 0.08;
     if (marsRef.current) marsRef.current.rotation.y += delta * 0.12;
   });
@@ -651,8 +661,8 @@ export default function SolarSystemScene({ activePlanetKey, onSelectPlanet }) {
   return (
     <group>
       {/* Solar Key Light + Rim Fill */}
-      <ambientLight intensity={0.22} color="#cbd5e1" />
-      <directionalLight position={[-25, 110, 15]} intensity={2.85} color="#fff7ed" />
+      <ambientLight intensity={0.35} color="#cbd5e1" />
+      <directionalLight position={[-25, 110, 15]} intensity={3.2} color="#fff7ed" />
       <pointLight position={[0, 96, -12]} intensity={35} distance={75} color="#bae6fd" />
 
       {/* EARTH (LEO) */}
@@ -667,23 +677,24 @@ export default function SolarSystemScene({ activePlanetKey, onSelectPlanet }) {
           <sphereGeometry args={[3.2, 64, 48]} />
           <meshStandardMaterial
             map={textures.earth}
-            roughness={0.55}
-            metalness={0.12}
+            roughnessMap={textures.specular}
+            roughness={0.45}
+            metalness={0.1}
           />
         </mesh>
-        {/* Rotating Cloud Layer */}
+        {/* Subtle, Translucent Rotating Cloud Layer */}
         <mesh ref={earthCloudsRef}>
-          <sphereGeometry args={[3.28, 56, 40]} />
+          <sphereGeometry args={[3.25, 56, 40]} />
           <meshStandardMaterial
             map={textures.earthClouds}
             transparent
-            opacity={0.85}
+            opacity={0.35}
             depthWrite={false}
           />
         </mesh>
         {/* Atmospheric Fresnel Glow */}
         <mesh material={shaders.earth}>
-          <sphereGeometry args={[3.42, 56, 40]} />
+          <sphereGeometry args={[3.38, 56, 40]} />
         </mesh>
         {/* LEO Orbital Ring */}
         <mesh rotation={[Math.PI * 0.42, 0.25, 0]}>
@@ -711,8 +722,8 @@ export default function SolarSystemScene({ activePlanetKey, onSelectPlanet }) {
           <meshStandardMaterial
             map={textures.moon}
             bumpMap={textures.moon}
-            bumpScale={0.14}
-            roughness={0.94}
+            bumpScale={0.12}
+            roughness={0.92}
             metalness={0.02}
           />
         </mesh>
@@ -744,13 +755,13 @@ export default function SolarSystemScene({ activePlanetKey, onSelectPlanet }) {
           <meshStandardMaterial
             map={textures.mars}
             bumpMap={textures.mars}
-            bumpScale={0.12}
-            roughness={0.88}
-            metalness={0.05}
+            bumpScale={0.1}
+            roughness={0.85}
+            metalness={0.04}
           />
         </mesh>
         <mesh material={shaders.mars}>
-          <sphereGeometry args={[3.08, 56, 40]} />
+          <sphereGeometry args={[3.06, 56, 40]} />
         </mesh>
         <mesh rotation={[Math.PI * 0.45, -0.22, 0]}>
           <torusGeometry args={[4.15, 0.025, 8, 64]} />

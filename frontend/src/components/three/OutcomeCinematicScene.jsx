@@ -12,7 +12,18 @@ function OrbitalSuccessScene() {
   const rightPanelRef = useRef();
   const leftFairingRef = useRef();
   const rightFairingRef = useRef();
-  const radarRef = useRef();
+
+  // Load Real NASA 2K Blue Marble Earth & Translucent Clouds
+  const { earthTex, cloudsTex } = useMemo(() => {
+    const loader = new THREE.TextureLoader();
+    const earth = loader.load('/textures/earth.jpg');
+    earth.colorSpace = THREE.SRGBColorSpace;
+    earth.wrapS = THREE.RepeatWrapping;
+
+    const clouds = loader.load('/textures/clouds.png');
+    clouds.wrapS = THREE.RepeatWrapping;
+    return { earthTex: earth, cloudsTex: clouds };
+  }, []);
 
   useFrame(({ clock }, delta) => {
     const t = clock.getElapsedTime();
@@ -42,40 +53,36 @@ function OrbitalSuccessScene() {
       rightFairingRef.current.rotation.z -= delta * 0.32;
       rightFairingRef.current.rotation.y += delta * 0.22;
     }
-
-    // Pulsing green radar scan cone
-    if (radarRef.current?.material) {
-      radarRef.current.material.opacity = 0.18 + Math.sin(t * 3.5) * 0.08;
-    }
   });
 
   return (
     <group>
       <color attach="background" args={['#020409']} />
       <Stars radius={90} depth={50} count={4500} factor={4.0} saturation={0.35} fade speed={0.4} />
-      <ambientLight intensity={0.45} color="#BAE6FD" />
+      <ambientLight intensity={0.55} color="#BAE6FD" />
       <directionalLight position={[14, 10, 12]} intensity={2.8} color="#FFFBEB" />
 
-      {/* Sunlit Rotating 3D Earth Below */}
+      {/* Sunlit Rotating 3D Photorealistic Earth Below */}
       <group position={[0, -14.5, -2]}>
         <mesh ref={earthRef}>
-          <sphereGeometry args={[12.5, 48, 48]} />
-          <meshStandardMaterial color="#0284C7" roughness={0.65} metalness={0.1} />
+          <sphereGeometry args={[12.5, 64, 64]} />
+          <meshStandardMaterial map={earthTex} roughness={0.55} metalness={0.08} />
         </mesh>
-        {/* Continents / Landmass accents */}
-        <mesh rotation={[0.4, 0.8, 0.2]}>
-          <sphereGeometry args={[12.54, 32, 32]} />
-          <meshStandardMaterial color="#15803D" roughness={0.85} wireframe transparent opacity={0.18} />
-        </mesh>
-        {/* Cloud Layer */}
+        {/* Real Delicate Cloud Layer */}
         <mesh ref={cloudsRef}>
-          <sphereGeometry args={[12.72, 40, 40]} />
-          <meshStandardMaterial color="#F8FAFC" transparent opacity={0.28} roughness={1} />
+          <sphereGeometry args={[12.65, 48, 48]} />
+          <meshStandardMaterial
+            map={cloudsTex}
+            transparent
+            opacity={0.35}
+            roughness={1}
+            depthWrite={false}
+          />
         </mesh>
         {/* Atmospheric Fresnel Halo */}
         <mesh>
-          <sphereGeometry args={[13.15, 40, 40]} />
-          <meshBasicMaterial color="#38BDF8" transparent opacity={0.22} side={THREE.BackSide} />
+          <sphereGeometry args={[13.05, 48, 48]} />
+          <meshBasicMaterial color="#38BDF8" transparent opacity={0.25} side={THREE.BackSide} />
         </mesh>
       </group>
 
@@ -150,10 +157,22 @@ function SurfaceTouchdownScene({ rocketConfig, isMars }) {
   const roverRef = useRef();
   const laserRef = useRef();
 
+  const { groundTex, earthTex } = useMemo(() => {
+    const loader = new THREE.TextureLoader();
+    const gTex = loader.load(isMars ? '/textures/mars.jpg' : '/textures/moon.jpg');
+    gTex.wrapS = THREE.RepeatWrapping;
+    gTex.wrapT = THREE.RepeatWrapping;
+    gTex.repeat.set(4, 4);
+
+    const eTex = loader.load('/textures/earth.jpg');
+    eTex.colorSpace = THREE.SRGBColorSpace;
+    return { groundTex: gTex, earthTex: eTex };
+  }, [isMars]);
+
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
     if (roverRef.current) {
-      // Rover rolls out from lander ramp and patrols gently
+      // Rover rolls out from lander ramp and patrols gently on the surface
       const rollout = Math.min(1, t / 3.5);
       roverRef.current.position.x = 1.6 + rollout * 1.45 + Math.sin(t * 0.5) * 0.25;
       roverRef.current.position.z = 1.2 + Math.cos(t * 0.4) * 0.2;
@@ -163,8 +182,8 @@ function SurfaceTouchdownScene({ rocketConfig, isMars }) {
     }
   });
 
-  const groundColor = isMars ? '#B45309' : '#64748B';
-  const craterColor = isMars ? '#9A3412' : '#94A3B8';
+  const groundColor = isMars ? '#9A3412' : '#64748B';
+  const craterColor = isMars ? '#7C2D12' : '#94A3B8';
   const skyColor = isMars ? '#3B1406' : '#020409';
 
   const craters = useMemo(
@@ -181,18 +200,18 @@ function SurfaceTouchdownScene({ rocketConfig, isMars }) {
     <group>
       <color attach="background" args={[skyColor]} />
       <Stars radius={95} depth={50} count={isMars ? 1800 : 4200} factor={3.5} fade speed={0.3} />
-      <ambientLight intensity={isMars ? 0.85 : 0.65} color={isMars ? '#FED7AA' : '#E2E8F0'} />
-      <directionalLight position={[14, 18, 12]} intensity={2.6} color="#FFFBEB" castShadow />
+      <ambientLight intensity={isMars ? 0.95 : 0.65} color={isMars ? '#FED7AA' : '#E2E8F0'} />
+      <directionalLight position={[14, 18, 12]} intensity={2.8} color="#FFFBEB" castShadow />
 
-      {/* Earth in Lunar Sky */}
+      {/* Photorealistic Earth in Lunar Sky */}
       {!isMars && (
         <group position={[-12, 11, -24]}>
           <mesh>
-            <sphereGeometry args={[2.2, 32, 32]} />
-            <meshStandardMaterial color="#0284C7" emissive="#0369A1" emissiveIntensity={0.35} roughness={0.6} />
+            <sphereGeometry args={[2.2, 48, 48]} />
+            <meshStandardMaterial map={earthTex} roughness={0.5} />
           </mesh>
           <mesh>
-            <sphereGeometry args={[2.35, 32, 32]} />
+            <sphereGeometry args={[2.32, 32, 32]} />
             <meshBasicMaterial color="#38BDF8" transparent opacity={0.25} side={THREE.BackSide} />
           </mesh>
         </group>
@@ -220,10 +239,15 @@ function SurfaceTouchdownScene({ rocketConfig, isMars }) {
         </group>
       )}
 
-      {/* Planetary Surface */}
+      {/* Real Textured Planetary Surface */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
         <circleGeometry args={[55, 48]} />
-        <meshStandardMaterial color={groundColor} roughness={0.94} />
+        <meshStandardMaterial
+          map={groundTex}
+          color={groundColor}
+          roughness={0.92}
+          metalness={0.05}
+        />
       </mesh>
 
       {/* Crater Rings */}
@@ -240,24 +264,18 @@ function SurfaceTouchdownScene({ rocketConfig, isMars }) {
         <meshBasicMaterial color="#0F172A" transparent opacity={0.62} />
       </mesh>
 
-      {/* Landed Spacecraft on Deployed Landing Legs */}
-      <group position={[-1.4, 0.2, -0.5]}>
+      {/* Landed Spacecraft on Deployed Landing Legs (Firmly Grounded) */}
+      <group position={[-1.4, 0, -0.5]}>
         <ModularRocket3D
           rocketConfig={rocketConfig}
           stageFilter="upper_only"
           deployLegs={true}
           showSpatialLabels={false}
         />
-        {/* Pulsing Green Touchdown Beacon */}
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.15, 0]}>
-          <ringGeometry args={[2.3, 2.55, 36]} />
-          <meshBasicMaterial color="#10B981" side={THREE.DoubleSide} />
-        </mesh>
-        <pointLight position={[0, 1.5, 0]} intensity={5} distance={10} color="#10B981" />
       </group>
 
-      {/* 3D Surface Rover with Headlights & Laser Scanner */}
-      <group ref={roverRef} position={[2.2, 0.35, 1.2]} rotation={[0, -0.45, 0]}>
+      {/* 3D Surface Rover with Headlights & Laser Scanner (Firmly on Ground) */}
+      <group ref={roverRef} position={[2.2, 0, 1.2]} rotation={[0, -0.45, 0]}>
         {/* Rover Chassis */}
         <mesh position={[0, 0.22, 0]} castShadow>
           <boxGeometry args={[1.1, 0.32, 0.78]} />

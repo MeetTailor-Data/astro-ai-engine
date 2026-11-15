@@ -19,151 +19,25 @@ function resolveBodyType(selectedMission) {
 
 function useCurvedPlanetTexture(bodyType) {
   return useMemo(() => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 2048;
-    canvas.height = 1024;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return null;
-
-    if (bodyType === 'mars') {
-      const grad = ctx.createLinearGradient(0, 0, 0, 1024);
-      grad.addColorStop(0, '#F8FAFC'); // North Polar Cap
-      grad.addColorStop(0.06, '#9A3412');
-      grad.addColorStop(0.28, '#C2410C');
-      grad.addColorStop(0.5, '#99350E');
-      grad.addColorStop(0.78, '#C2410C');
-      grad.addColorStop(0.94, '#7C2D12');
-      grad.addColorStop(1, '#F8FAFC'); // South Polar Cap
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, 2048, 1024);
-
-      // Dark basalt plains (Syrtis Major, Acidalia)
-      const basins = [
-        { x: 1380, y: 480, rx: 220, ry: 160 },
-        { x: 740, y: 310, rx: 240, ry: 140 },
-        { x: 1140, y: 580, rx: 300, ry: 130 },
-      ];
-      basins.forEach((b) => {
-        const bg = ctx.createRadialGradient(b.x, b.y, 20, b.x, b.y, b.rx);
-        bg.addColorStop(0, '#381608');
-        bg.addColorStop(0.7, '#58210d');
-        bg.addColorStop(1, 'rgba(154, 52, 18, 0)');
-        ctx.fillStyle = bg;
-        ctx.beginPath();
-        ctx.ellipse(b.x, b.y, b.rx, b.ry, 0.2, 0, Math.PI * 2);
-        ctx.fill();
-      });
-
-      // Valles Marineris canyon scar
-      ctx.strokeStyle = '#1e0802';
-      ctx.lineWidth = 14;
-      ctx.beginPath();
-      ctx.moveTo(560, 520);
-      ctx.bezierCurveTo(720, 505, 940, 560, 1120, 530);
-      ctx.stroke();
-
-      // Olympus Mons
-      const olyGrad = ctx.createRadialGradient(420, 430, 10, 420, 430, 95);
-      olyGrad.addColorStop(0, '#5a1d06');
-      olyGrad.addColorStop(0.4, '#d97706');
-      olyGrad.addColorStop(1, 'rgba(154, 52, 18, 0)');
-      ctx.fillStyle = olyGrad;
-      ctx.beginPath();
-      ctx.arc(420, 430, 95, 0, Math.PI * 2);
-      ctx.fill();
-    } else {
-      // NASA Blue Marble Earth 2048x1024
-      const grad = ctx.createLinearGradient(0, 0, 0, 1024);
-      grad.addColorStop(0, '#020b1e');
-      grad.addColorStop(0.12, '#052249');
-      grad.addColorStop(0.4, '#0b3d68');
-      grad.addColorStop(0.5, '#0d4a7a');
-      grad.addColorStop(0.75, '#082d56');
-      grad.addColorStop(0.9, '#031733');
-      grad.addColorStop(1, '#020b1e');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, 2048, 1024);
-
-      // Coastal Shallow Water Turquoise Shelves
-      const shelves = [
-        { x: 420, y: 340, rx: 320, ry: 210 },
-        { x: 620, y: 680, rx: 210, ry: 270 },
-        { x: 1100, y: 300, rx: 370, ry: 220 },
-        { x: 1120, y: 600, rx: 260, ry: 280 },
-        { x: 1540, y: 370, rx: 420, ry: 250 },
-        { x: 1720, y: 760, rx: 220, ry: 170 },
-      ];
-      shelves.forEach((s) => {
-        const bg = ctx.createRadialGradient(s.x, s.y, 40, s.x, s.y, Math.max(s.rx, s.ry));
-        bg.addColorStop(0, 'rgba(17, 138, 153, 0.6)');
-        bg.addColorStop(0.8, 'rgba(13, 94, 120, 0.25)');
-        bg.addColorStop(1, 'rgba(13, 74, 122, 0)');
-        ctx.fillStyle = bg;
-        ctx.beginPath();
-        ctx.ellipse(s.x, s.y, s.rx + 25, s.ry + 25, 0, 0, Math.PI * 2);
-        ctx.fill();
-      });
-
-      // Continents (North America, South America, Eurasia, Africa, Australia)
-      ctx.fillStyle = '#1b431e';
-      ctx.beginPath();
-      ctx.ellipse(450, 310, 260, 160, -0.1, 0, Math.PI * 2);
-      ctx.ellipse(600, 680, 160, 230, 0.15, 0, Math.PI * 2);
-      ctx.ellipse(1480, 320, 380, 210, 0.05, 0, Math.PI * 2);
-      ctx.ellipse(1120, 600, 210, 240, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Sahara Desert
-      ctx.fillStyle = '#c99a4e';
-      ctx.beginPath();
-      ctx.ellipse(1100, 480, 180, 85, -0.05, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Australian Red Outback
-      ctx.fillStyle = '#b85a2b';
-      ctx.beginPath();
-      ctx.ellipse(1720, 750, 150, 95, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Polar Ice
-      ctx.fillStyle = '#F8FAFC';
-      ctx.fillRect(0, 0, 2048, 55);
-      ctx.fillRect(0, 965, 2048, 65);
-    }
-
-    const tex = new THREE.CanvasTexture(canvas);
-    tex.wrapS = THREE.RepeatWrapping;
-    tex.wrapT = THREE.ClampToEdgeWrapping;
+    const loader = new THREE.TextureLoader();
+    const url =
+      bodyType === 'mars'
+        ? '/textures/mars.jpg'
+        : bodyType === 'moon'
+        ? '/textures/moon.jpg'
+        : '/textures/earth.jpg';
+    const tex = loader.load(url);
     tex.colorSpace = THREE.SRGBColorSpace;
-    tex.generateMipmaps = true;
-    tex.needsUpdate = true;
+    tex.wrapS = THREE.RepeatWrapping;
     return tex;
   }, [bodyType]);
 }
 
 function useEarthCloudsTexture() {
   return useMemo(() => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 2048;
-    canvas.height = 1024;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return null;
-
-    ctx.clearRect(0, 0, 2048, 1024);
-    // Dynamic Cloud Formations & Cyclones
-    for (let i = 0; i < 280; i += 1) {
-      const cx = (i * 123) % 2048;
-      const cy = 60 + ((i * 71) % 900);
-      ctx.fillStyle = `rgba(255, 255, 255, ${0.15 + (i % 5) * 0.14})`;
-      ctx.beginPath();
-      ctx.ellipse(cx, cy, 65 + (i % 6) * 45, 14 + (i % 4) * 12, (i % 5) * 0.2 - 0.5, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    const tex = new THREE.CanvasTexture(canvas);
+    const loader = new THREE.TextureLoader();
+    const tex = loader.load('/textures/clouds.png');
     tex.wrapS = THREE.RepeatWrapping;
-    tex.wrapT = THREE.ClampToEdgeWrapping;
-    tex.needsUpdate = true;
     return tex;
   }, []);
 }
@@ -622,9 +496,9 @@ export default function FlightSimulationScene({
   // Compute rocket visual Y height for pad / landing / spaceflight
   const rocketVisualY = useMemo(() => {
     if (isPrelaunch) return 0;
-    if (isLanded) return 0.35;
+    if (isLanded) return 0;
     if (isDescending) {
-      return Math.max(0.35, (altitudeKm / 12) * 8.5);
+      return Math.max(0, (altitudeKm / 12) * 8.5);
     }
     if (altitudeKm < 6) {
       return altitudeKm * 3.2;
@@ -727,10 +601,17 @@ export default function FlightSimulationScene({
       camTargetRef.current.set(1.25 + shakeX * 0.5, ry + 7.2 + shakeY * 0.5, 1.4);
       camLookRef.current.set(0, ry - 4.0, 0);
     } else {
-      // TRACKING CAM (slow-motion orbital pan during finale)
-      const finaleOrbit = isLanded || isOrbited || isCrashed ? Math.sin(t * 0.45) * 3.2 : 0;
-      camTargetRef.current.set(6.4 + shakeX + finaleOrbit, ry + 4.4 + shakeY, 10.6);
-      camLookRef.current.set(0, ry + 3.2, 0);
+      // TRACKING CAM
+      if (isOrbitalPhase || isOrbited) {
+        // High orbital vantage point with camera angled to keep both satellite AND Earth in full frame!
+        const orbT = t * 0.25;
+        camTargetRef.current.set(Math.cos(orbT) * 5.2, ry + 2.5, Math.sin(orbT) * 5.2 + 4.2);
+        camLookRef.current.set(0, ry - 0.4, -4.5);
+      } else {
+        const finaleOrbit = isLanded || isCrashed ? Math.sin(t * 0.45) * 3.2 : 0;
+        camTargetRef.current.set(6.4 + shakeX + finaleOrbit, ry + 4.4 + shakeY, 10.6);
+        camLookRef.current.set(0, ry + 3.2, 0);
+      }
     }
 
     camera.position.lerp(camTargetRef.current, 1 - Math.exp(-6.5 * delta));
@@ -779,33 +660,34 @@ export default function FlightSimulationScene({
 
       {/* Photorealistic Curved Earth or Mars Globe below when high in atmosphere / space */}
       {showCurvedEarth && (
-        <group position={[0, -52 - Math.min(24, (altitudeKm - 35) * 0.12), -12]}>
-          <mesh rotation={[0.4, 0.6, 0]}>
-            <sphereGeometry args={[48, 64, 48]} />
+        <group position={[0, isOrbitalPhase || isOrbited ? ry - 36 : -52 - Math.min(24, (altitudeKm - 35) * 0.12), isOrbitalPhase || isOrbited ? -6 : -12]}>
+          <mesh rotation={[0.4, t * 0.03, 0]}>
+            <sphereGeometry args={[42, 64, 48]} />
             <meshStandardMaterial
               map={curvedPlanetTexture}
-              roughness={0.78}
+              roughness={0.65}
               metalness={0.06}
             />
           </mesh>
           {bodyType === 'earth' && (
-            <mesh rotation={[0.3, 0.75, 0]}>
-              <sphereGeometry args={[48.45, 48, 36]} />
+            <mesh rotation={[0.3, t * 0.05, 0]}>
+              <sphereGeometry args={[42.35, 48, 36]} />
               <meshStandardMaterial
                 map={earthCloudsTexture}
                 transparent
-                opacity={0.38}
+                opacity={0.35}
                 roughness={1.0}
+                depthWrite={false}
               />
             </mesh>
           )}
           {/* Atmospheric Rayleigh Blue / Mars Haze Halo */}
           <mesh>
-            <sphereGeometry args={[49.2, 48, 36]} />
+            <sphereGeometry args={[43.1, 48, 36]} />
             <meshBasicMaterial
               color={bodyType === 'mars' ? '#FB923C' : '#38BDF8'}
               transparent
-              opacity={0.28}
+              opacity={0.25}
               side={THREE.BackSide}
             />
           </mesh>
@@ -854,7 +736,7 @@ export default function FlightSimulationScene({
       <group ref={rocketGroupRef} position={[0, 0, 0]}>
         {!isCrashed && (
           <>
-            <group position={[0, -0.5, 0]}>
+            <group position={[0, isLanded ? 0 : -0.5, 0]}>
               <ModularRocket3D
                 rocketConfig={rocketConfig}
                 activeSlot={null}
@@ -879,13 +761,6 @@ export default function FlightSimulationScene({
                   <meshStandardMaterial color="#FFFFFF" metalness={0.2} roughness={0.4} side={THREE.DoubleSide} />
                 </mesh>
               </group>
-            )}
-            {/* Orbital Weather Radar Scanning Cone pointing towards Earth */}
-            {(isOrbitalPhase || isOrbited) && bodyType === 'earth' && (
-              <mesh position={[0, -2.6, 0]}>
-                <cylinderGeometry args={[0.15, 3.4, 5.5, 24, 1, true]} />
-                <meshBasicMaterial color="#00F0FF" transparent opacity={0.16} side={THREE.DoubleSide} />
-              </mesh>
             )}
             <ExhaustPlume mode={exhaustMode} position={[0, stageSeparated ? 3.5 : 0.25, 0]} />
           </>

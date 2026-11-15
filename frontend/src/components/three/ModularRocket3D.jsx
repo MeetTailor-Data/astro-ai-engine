@@ -870,9 +870,10 @@ export default function ModularRocket3D({
 
   const showLower = stageFilter === 'all' || stageFilter === 'booster_only';
   const showUpper = stageFilter === 'all' || stageFilter === 'upper_only';
+  const yShift = stageFilter === 'upper_only' ? -(upperY - upperH / 2) : -0.2;
 
   return (
-    <group position={[0, -0.2, 0]}>
+    <group position={[0, yShift, 0]}>
       {/* SLOT 1: Main Booster */}
       {showLower && (
         <group position={[0, boosterY, 0]} onClick={(e) => { e.stopPropagation(); onSelectSlot?.('mainBooster'); }}>

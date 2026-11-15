@@ -385,9 +385,9 @@ export function createLocalPhysicsStream({
     if (simTime < COUNTDOWN_SEC) {
       phase = 'COUNTDOWN';
       if (simTime >= 0.2) hqCallout = emitOnce('T15', 'FLIGHT DIRECTOR: Terminal count initiated. Pad-39A cleared.');
-      if (simTime >= 4.5) hqCallout = emitOnce('T10', 'GUIDANCE: Flight computer internal. All stations GO for launch.');
-      if (simTime >= 8.5) hqCallout = emitOnce('T6', 'PROPULSION: Main engine turbopumps spinning up.');
-      if (simTime >= 11.0) hqCallout = emitOnce('T4', 'FIDO: Sound suppression deluge active.');
+      if (simTime >= 3.2) hqCallout = emitOnce('T12', 'GUIDANCE: Flight computer internal. All stations GO for launch.');
+      if (simTime >= 6.2) hqCallout = emitOnce('T9', 'PROPULSION: Main engine turbopumps spinning up.');
+      if (simTime >= 8.2) hqCallout = emitOnce('T7', 'FIDO: Sound suppression deluge active.');
     } else {
       const flightT = simTime - COUNTDOWN_SEC; // seconds since T-0 liftoff
 

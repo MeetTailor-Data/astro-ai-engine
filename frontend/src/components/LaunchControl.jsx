@@ -174,17 +174,25 @@ export default function LaunchControl() {
         if (tick.phase === 'COUNTDOWN' && tick.countdownSec > 0 && tick.countdownSec !== prevCountdownRef.current) {
           prevCountdownRef.current = tick.countdownSec;
           soundEngine.playCountdownBeep(false);
-          if (tick.countdownSec === 5) soundEngine.speakCountdown('Five');
-          else if (tick.countdownSec === 4) soundEngine.speakCountdown('Four');
-          else if (tick.countdownSec === 3) soundEngine.speakCountdown('Three');
-          else if (tick.countdownSec === 2) soundEngine.speakCountdown('Two');
-          else if (tick.countdownSec === 1) soundEngine.speakCountdown('One');
+          if (tick.countdownSec === 5) {
+            soundEngine.cancelAllSpeech();
+            soundEngine.speakCountdown('Five');
+          } else if (tick.countdownSec === 4) {
+            soundEngine.speakCountdown('Four');
+          } else if (tick.countdownSec === 3) {
+            soundEngine.speakCountdown('Three');
+          } else if (tick.countdownSec === 2) {
+            soundEngine.speakCountdown('Two');
+          } else if (tick.countdownSec === 1) {
+            soundEngine.speakCountdown('One');
+          }
         }
 
         // Liftoff thruster rumble & synchronized Liftoff callout
         if (tick.phase !== 'COUNTDOWN' && tick.status === 'IN_FLIGHT' && tick.phase !== 'EXPLODING') {
           if (prevCountdownRef.current !== 0) {
             prevCountdownRef.current = 0;
+            soundEngine.cancelAllSpeech();
             soundEngine.speakCountdown('Liftoff! We have liftoff!');
             soundEngine.playCountdownBeep(true);
             soundEngine.startThrusterRumble();
@@ -197,6 +205,7 @@ export default function LaunchControl() {
         if ((tick.phase === 'EXPLODING' || tick.status === 'CRASHED') && !hasExplodedRef.current) {
           hasExplodedRef.current = true;
           soundEngine.stopThrusterRumble();
+          soundEngine.cancelAllSpeech();
           soundEngine.playCatastrophicExplosionSound();
           setCameraMode('TRACKING'); // Switch from destroyed onboard rocket-cam to mission control tracking cam!
           setAutoAdvance(false);
@@ -210,9 +219,11 @@ export default function LaunchControl() {
 
         // HQ Callout radio log + NASA synthesized voice broadcast
         if (tick.hqCallout) {
-          // Do not repeat countdown numbers if already spoken
-          if (!['T3', 'T2', 'T1', 'LIFT_COUNT'].includes(tick.hqCalloutKey)) {
-            soundEngine.speakRadioCallout(tick.hqCallout, tick.phase === 'EXPLODING', speedRef.current);
+          // Do not speak technical callouts during final 5-second countdown to prevent speech collisions
+          if (tick.phase !== 'COUNTDOWN' || tick.countdownSec > 5) {
+            if (!['T3', 'T2', 'T1', 'LIFT_COUNT'].includes(tick.hqCalloutKey)) {
+              soundEngine.speakRadioCallout(tick.hqCallout, tick.phase === 'EXPLODING', speedRef.current);
+            }
           }
           const tLabel =
             tick.phase === 'COUNTDOWN'
