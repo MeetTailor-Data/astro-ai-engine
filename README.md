@@ -27,27 +27,27 @@ The complete mission design lifecycle in AESTRO AI:
 | 01. Mission Selection & Dossier | 02. 3D Vehicle Assembly Building (VAB) |
 |:---:|:---:|
 | ![Mission Selection](screenshots/01_mission_selection.jpg) | ![VAB Assembly](screenshots/02_vab_hangar_assembly.jpg) |
-| *Browse mission contracts (LEO Sentinel, Lunar Lander, Mars Rover) with CML-1 requirements.* | *Modular 6-slot rocket configuration with interactive 360° WebGL 3D inspection.* |
+| *Browse planetary mission contracts (LEO Sentinel, Lunar Lander, Mars Rover) with CML-1 requirements.* | *Modular 6-slot rocket assembly inside authentic NASA Kennedy Space Center High-Bay VAB with interactive 360° WebGL inspection.* |
 
 | 03. Subsystem & Propellant Tuning | 04. 6-Resource Telemetry & Readiness |
 |:---:|:---:|
 | ![Subsystem Tuning](screenshots/03_subsystem_configuration.jpg) | ![Resource Telemetry](screenshots/04_six_resource_telemetry.png) |
-| *Optimize engine cycles, propellants (Hydrolox, Methalox, RP-1), and fuel tank sizing.* | *Live budget caps, power margins, and Maya's Avionics Remediation Directives.* |
+| *Optimize engine cycles, propellants (Hydrolox, Methalox, RP-1), and fuel tank sizing.* | *Live budget caps, power margins, and Chief Engineer Maya's Avionics Remediation Directives.* |
 
 | 05. Launchpad Staging & Countdown | 06. In-Flight Ascent Telemetry |
 |:---:|:---:|
 | ![Countdown](screenshots/05_launch_control_countdown.jpg) | ![Ascent Telemetry](screenshots/06_live_flight_telemetry.jpg) |
-| *Automated launch sequencer with cryogenic fueling and pad stabilization checks.* | *Live telemetry graphs: Altitude, velocity, dynamic pressure (Q), and G-force.* |
+| *Automated T-15s cryogenic launch sequencer with synchronized voice countdown and pad stabilization.* | *Real-time telemetry graphs: Altitude, velocity, dynamic pressure (Q), and G-force over curved Earth.* |
 
 | 07. Mission Debrief & Scoring | 08. Multi-Camera Launch Tracking |
 |:---:|:---:|
 | ![Mission Debrief](screenshots/07_post_flight_debrief.jpg) | ![Launch Tracking](screenshots/08_rocket_liftoff_telemetry.jpg) |
-| *0–1000 objective scoring, letter grades (S–F), and local mission leaderboards.* | *Real-time exhaust particle physics, camera tracking, and pad telemetry.* |
+| *0–1000 objective scoring, letter grades (S–F), radar performance telemetry, and local mission leaderboards.* | *Real-time exhaust particle physics, camera tracking (Pad Cam, Tracking Cam, Rocket Cam), and pad telemetry.* |
 
 | 09. Orbit Confirmed & NASA Heritage |
 |:---:|
 | ![Orbit Confirmed](screenshots/09_orbit_confirmed_heritage.jpg) |
-| *Orbit insertion confirmed with 3D deployed satellite and real NASA flight matching (NOAA-20 / JPSS).* |
+| *Orbital insertion confirmed with 3D deployed satellite, curved Earth perspective, and real NASA flight lineage (NOAA-20 / JPSS).* |
 
 ---
 
