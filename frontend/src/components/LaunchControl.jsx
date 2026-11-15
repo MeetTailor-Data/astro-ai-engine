@@ -148,7 +148,7 @@ export default function LaunchControl() {
     const hasExplodedRef = { current: false };
 
     const missionId = activeMissionId || `sim-${Date.now()}`;
-    setTelemetry((prev) => ({ ...prev, status: 'IN_FLIGHT', phase: 'COUNTDOWN', countdownSec: 20 }));
+    setTelemetry((prev) => ({ ...prev, status: 'IN_FLIGHT', phase: 'COUNTDOWN', countdownSec: 15 }));
 
     try {
       await runMission(missionId);
@@ -187,7 +187,7 @@ export default function LaunchControl() {
         if (tick.phase !== 'COUNTDOWN' && tick.status === 'IN_FLIGHT' && tick.phase !== 'EXPLODING') {
           if (!spokenCountdownRef.current.has(0)) {
             spokenCountdownRef.current.add(0);
-            soundEngine.speakCountdown('Liftoff!');
+            soundEngine.speakCountdown('Liftoff! We have liftoff!');
             soundEngine.playCountdownBeep(true);
             soundEngine.startThrusterRumble();
           }

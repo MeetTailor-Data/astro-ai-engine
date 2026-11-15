@@ -76,15 +76,16 @@ class SoundEngine {
   }
 
   /**
-   * Ultra-crisp countdown speaker (5, 4, 3, 2, 1, Liftoff!).
-   * Natural broadcast cadence without violent mid-word cancellation.
+   * Ultra-crisp, zero-latency countdown speaker (5, 4, 3, 2, 1, Liftoff!).
+   * Cancels any pending background speech immediately so numbers match the screen in real-time.
    */
   speakCountdown(word) {
     if (this.muted || typeof window === 'undefined' || !window.speechSynthesis) return;
     try {
+      window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(word);
-      utterance.rate = 1.15;
-      utterance.pitch = 1.02;
+      utterance.rate = 1.18;
+      utterance.pitch = 1.05;
       utterance.volume = this.muted ? 0 : 0.95;
 
       const voices = window.speechSynthesis.getVoices();
