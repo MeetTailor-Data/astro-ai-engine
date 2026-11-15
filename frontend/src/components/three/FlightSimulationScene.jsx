@@ -48,7 +48,7 @@ function CurvedPlanetGlobe({
   earthCloudsTexture,
   isOrbitalPhase,
   isOrbited,
-  rocketVisualY,
+  rocketVisualY: _rocketVisualY,
   altitudeKm,
 }) {
   const planetRef = useRef();
@@ -63,34 +63,33 @@ function CurvedPlanetGlobe({
     }
   });
 
+  // Center sphere well below rocket (rocket is at y=18), radius 80 -> top horizon at y=+8 in orbit!
   const planetY =
     isOrbitalPhase || isOrbited
-      ? (rocketVisualY ?? 18) - 36
-      : -52 - Math.min(24, (altitudeKm - 35) * 0.12);
+      ? -72
+      : -88 - Math.min(20, (altitudeKm - 35) * 0.12);
+
+  const planetZ = isOrbitalPhase || isOrbited ? -16 : -22;
 
   return (
-    <group
-      position={[
-        0,
-        planetY,
-        isOrbitalPhase || isOrbited ? -6 : -12,
-      ]}
-    >
+    <group position={[0, planetY, planetZ]}>
+      {/* Dedicated sunlight for vibrant continents, ocean shine & clouds */}
+      <directionalLight position={[15, 30, 25]} intensity={2.8} color="#FFFFFF" />
       <mesh ref={planetRef} rotation={[0.4, 0, 0]}>
-        <sphereGeometry args={[42, 64, 48]} />
+        <sphereGeometry args={[80, 64, 48]} />
         <meshStandardMaterial
           map={curvedPlanetTexture}
-          roughness={0.65}
-          metalness={0.06}
+          roughness={0.55}
+          metalness={0.05}
         />
       </mesh>
       {bodyType === 'earth' && (
         <mesh ref={cloudsRef} rotation={[0.3, 0, 0]}>
-          <sphereGeometry args={[42.35, 48, 36]} />
+          <sphereGeometry args={[80.8, 48, 36]} />
           <meshStandardMaterial
             map={earthCloudsTexture}
             transparent
-            opacity={0.35}
+            opacity={0.4}
             roughness={1.0}
             depthWrite={false}
           />
@@ -98,11 +97,11 @@ function CurvedPlanetGlobe({
       )}
       {/* Atmospheric Rayleigh Blue / Mars Haze Halo */}
       <mesh>
-        <sphereGeometry args={[43.1, 48, 36]} />
+        <sphereGeometry args={[82.0, 48, 36]} />
         <meshBasicMaterial
           color={bodyType === 'mars' ? '#FB923C' : '#38BDF8'}
           transparent
-          opacity={0.25}
+          opacity={0.28}
           side={THREE.BackSide}
         />
       </mesh>
@@ -666,15 +665,22 @@ export default function FlightSimulationScene({
       camTargetRef.current.set(6.2 + shakeX, 1.3 + shakeY, 7.5);
       camLookRef.current.set(0, ry + 3.2, 0);
     } else if (cameraMode === 'ROCKET_CAM') {
-      camTargetRef.current.set(1.25 + shakeX * 0.5, ry + 7.2 + shakeY * 0.5, 1.4);
-      camLookRef.current.set(0, ry - 4.0, 0);
+      if (isOrbitalPhase || isOrbited) {
+        // High-altitude orbital chase & Earth horizon camera:
+        // Positioned slightly above and behind the spacecraft, looking forward and downward across the Earth's curvature
+        camTargetRef.current.set(3.2, ry + 2.8, 5.8);
+        camLookRef.current.set(0, ry - 0.5, -4.0);
+      } else {
+        camTargetRef.current.set(1.4 + shakeX * 0.5, ry + 5.5 + shakeY * 0.5, 2.4);
+        camLookRef.current.set(0, ry - 2.0, 0);
+      }
     } else {
       // TRACKING CAM
       if (isOrbitalPhase || isOrbited) {
         // High orbital vantage point with camera angled to keep both satellite AND Earth in full frame!
-        const orbT = t * 0.25;
-        camTargetRef.current.set(Math.cos(orbT) * 5.2, ry + 2.5, Math.sin(orbT) * 5.2 + 4.2);
-        camLookRef.current.set(0, ry - 0.4, -4.5);
+        const orbT = t * 0.22;
+        camTargetRef.current.set(Math.cos(orbT) * 6.5, ry + 3.2, Math.sin(orbT) * 6.5 + 5.5);
+        camLookRef.current.set(0, ry + 0.5, -3.0);
       } else {
         const finaleOrbit = isLanded || isCrashed ? Math.sin(t * 0.45) * 3.2 : 0;
         camTargetRef.current.set(6.4 + shakeX + finaleOrbit, ry + 4.4 + shakeY, 10.6);
@@ -692,7 +698,7 @@ export default function FlightSimulationScene({
 
   const clampsOpen = !isPrelaunch;
   const showPad = altitudeKm < 12 && !isDescending && !isLanded;
-  const showCurvedEarth = altitudeKm > 35 && !isDescending && !isLanded;
+  const showCurvedEarth = (altitudeKm > 35 || isOrbitalPhase || isOrbited) && !isDescending && (!isLanded || isOrbited);
   const showDestination = isDescending || isLanded;
 
   const exhaustMode = isCrashed || isLanded || isOrbited || isOrbitalPhase || phase === 'FUEL_DEPLETED'

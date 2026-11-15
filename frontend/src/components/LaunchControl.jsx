@@ -112,6 +112,7 @@ export default function LaunchControl() {
   const prevCountdownRef = useRef(null);
   const prevStageSepRef = useRef(false);
   const spokenCountdownRef = useRef(new Set());
+  const hasAutoSwitchedCamRef = useRef(false);
   const fullTicksRef = useRef([]);
 
   const validationResult = useMemo(
@@ -145,6 +146,7 @@ export default function LaunchControl() {
     prevCountdownRef.current = null;
     prevStageSepRef.current = false;
     spokenCountdownRef.current.clear();
+    hasAutoSwitchedCamRef.current = false;
     const hasExplodedRef = { current: false };
 
     const missionId = activeMissionId || `sim-${Date.now()}`;
@@ -209,6 +211,12 @@ export default function LaunchControl() {
         if (tick.stageSeparated && !prevStageSepRef.current) {
           prevStageSepRef.current = true;
           soundEngine.playStageSeparationSound();
+        }
+
+        // Auto-switch to ROCKET-CAM upon orbital insertion / second stage cutoff so user sees Earth & satellite together
+        if ((tick.phase === 'PAYLOAD_DEPLOY' || tick.phase === 'ORBIT_CONFIRMED') && !hasAutoSwitchedCamRef.current) {
+          hasAutoSwitchedCamRef.current = true;
+          setCameraMode('ROCKET_CAM');
         }
 
         // HQ Callout radio log + NASA synthesized voice broadcast

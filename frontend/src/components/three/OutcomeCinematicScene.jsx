@@ -12,6 +12,7 @@ function OrbitalSuccessScene() {
   const rightPanelRef = useRef();
   const leftFairingRef = useRef();
   const rightFairingRef = useRef();
+  const radarRef = useRef();
 
   // Load Real NASA 2K Blue Marble Earth & Translucent Clouds
   const { earthTex, cloudsTex } = useMemo(() => {
@@ -52,6 +53,10 @@ function OrbitalSuccessScene() {
       rightFairingRef.current.position.set(1.6 + drift, 1.1 - drift * 0.22, -0.8 - drift * 0.3);
       rightFairingRef.current.rotation.z -= delta * 0.32;
       rightFairingRef.current.rotation.y += delta * 0.22;
+    }
+
+    if (radarRef.current?.material) {
+      radarRef.current.material.opacity = 0.18 + Math.sin(t * 3.5) * 0.08;
     }
   });
 
