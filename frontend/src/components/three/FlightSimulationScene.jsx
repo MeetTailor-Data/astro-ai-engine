@@ -223,14 +223,23 @@ function ExhaustPlume({ mode = 'off', position = [0, 0, 0] }) {
 function ExplosionEffect({ active, position = [0, 2, 0] }) {
   const groupRef = useRef();
   const ringRef = useRef();
+  const secondaryRingRef = useRef();
+  const fireballCoreRef = useRef();
+  const fireballOuterRef = useRef();
+
   const debris = useMemo(
     () =>
-      Array.from({ length: 16 }, (_, i) => ({
-        vx: Math.cos((i / 16) * Math.PI * 2) * (2.5 + (i % 4) * 1.4),
-        vy: 1.5 + (i % 5) * 1.2,
-        vz: Math.sin((i / 16) * Math.PI * 2) * (2.5 + (i % 3) * 1.4),
-        size: 0.14 + (i % 3) * 0.08,
-      })),
+      Array.from({ length: 28 }, (_, i) => {
+        const phi = (i / 28) * Math.PI * 2;
+        const speed = 3.5 + (i % 5) * 1.8;
+        return {
+          vx: Math.cos(phi) * speed,
+          vy: 2.2 + (i % 6) * 1.8,
+          vz: Math.sin(phi) * speed,
+          size: 0.16 + (i % 4) * 0.12,
+          rotSpeed: (i % 2 === 0 ? 1 : -1) * (2.5 + (i % 3) * 1.5),
+        };
+      }),
     []
   );
 
@@ -243,20 +252,46 @@ function ExplosionEffect({ active, position = [0, 2, 0] }) {
     if (startRef.current === 0) startRef.current = clock.getElapsedTime();
     const age = clock.getElapsedTime() - startRef.current;
 
+    // Expanding multi-tier shockwaves
     if (ringRef.current) {
-      const rScale = 1 + age * 8.5;
+      const rScale = 1 + age * 11.5;
       ringRef.current.scale.set(rScale, rScale, 1);
       if (ringRef.current.material) {
-        ringRef.current.material.opacity = Math.max(0, 0.9 - age * 0.45);
+        ringRef.current.material.opacity = Math.max(0, 0.95 - age * 0.38);
       }
     }
+    if (secondaryRingRef.current) {
+      const r2Scale = Math.max(0.1, (age - 0.2) * 14.0);
+      secondaryRingRef.current.scale.set(r2Scale, r2Scale, 1);
+      if (secondaryRingRef.current.material) {
+        secondaryRingRef.current.material.opacity = Math.max(0, 0.8 - (age - 0.2) * 0.45);
+      }
+    }
+
+    // Expanding & fading fireball spheres
+    if (fireballCoreRef.current) {
+      const sCore = Math.min(4.8, 1.2 + age * 4.2);
+      fireballCoreRef.current.scale.set(sCore, sCore, sCore);
+      if (fireballCoreRef.current.material) {
+        fireballCoreRef.current.material.opacity = Math.max(0, 1.0 - age * 0.32);
+      }
+    }
+    if (fireballOuterRef.current) {
+      const sOuter = Math.min(7.5, 1.8 + age * 5.8);
+      fireballOuterRef.current.scale.set(sOuter, sOuter, sOuter);
+      if (fireballOuterRef.current.material) {
+        fireballOuterRef.current.material.opacity = Math.max(0, 0.85 - age * 0.28);
+      }
+    }
+
+    // Flying debris with ballistic gravity arc
     if (groupRef.current) {
       groupRef.current.children.forEach((child, idx) => {
         const d = debris[idx];
         if (!d) return;
-        child.position.set(d.vx * age, d.vy * age - 2.2 * age * age, d.vz * age);
-        child.rotation.x += 0.12;
-        child.rotation.z += 0.09;
+        child.position.set(d.vx * age, d.vy * age - 3.8 * age * age, d.vz * age);
+        child.rotation.x += d.rotSpeed * 0.05;
+        child.rotation.z += d.rotSpeed * 0.04;
       });
     }
   });
@@ -265,68 +300,137 @@ function ExplosionEffect({ active, position = [0, 2, 0] }) {
 
   return (
     <group position={position}>
-      {/* Fireball Core */}
-      <mesh>
-        <sphereGeometry args={[1.8, 18, 16]} />
-        <meshBasicMaterial color="#FF6B1A" transparent opacity={0.88} />
+      {/* Blinding White Detonation Core */}
+      <mesh ref={fireballCoreRef}>
+        <sphereGeometry args={[1.4, 20, 18]} />
+        <meshBasicMaterial color="#FFFFFF" transparent opacity={1.0} />
       </mesh>
-      <mesh>
-        <sphereGeometry args={[1.15, 14, 12]} />
-        <meshBasicMaterial color="#FEF08A" transparent opacity={0.95} />
+      {/* Outer Fiery Orange Explosion Plasma */}
+      <mesh ref={fireballOuterRef}>
+        <sphereGeometry args={[2.2, 22, 20]} />
+        <meshBasicMaterial color="#FF4500" transparent opacity={0.88} />
       </mesh>
-      <pointLight intensity={18} distance={28} color="#FF4500" />
-      {/* Expanding Shockwave Ring */}
+      <pointLight intensity={35} distance={42} color="#FF6B1A" />
+
+      {/* Primary Expanding Shockwave Ring */}
       <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[0.8, 1.15, 32]} />
-        <meshBasicMaterial color="#FBBF24" side={THREE.DoubleSide} transparent opacity={0.85} />
+        <ringGeometry args={[0.9, 1.45, 36]} />
+        <meshBasicMaterial color="#FBBF24" side={THREE.DoubleSide} transparent opacity={0.9} />
       </mesh>
-      {/* Flying 3D Debris Parts */}
+      {/* Secondary Fast Shockwave */}
+      <mesh ref={secondaryRingRef} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[1.2, 1.7, 36]} />
+        <meshBasicMaterial color="#FF2200" side={THREE.DoubleSide} transparent opacity={0.8} />
+      </mesh>
+
+      {/* Flying 3D Shattered Rocket Hull & Engine Debris */}
       <group ref={groupRef}>
         {debris.map((d, i) => (
           <mesh key={i}>
-            <boxGeometry args={[d.size, d.size * 1.6, d.size * 0.7]} />
-            <meshStandardMaterial color={i % 2 === 0 ? '#E2E8F0' : '#475569'} metalness={0.6} />
+            <boxGeometry args={[d.size, d.size * 1.8, d.size * 0.8]} />
+            <meshStandardMaterial
+              color={i % 3 === 0 ? '#1E293B' : i % 3 === 1 ? '#DC2626' : '#E2E8F0'}
+              metalness={0.7}
+              roughness={0.3}
+            />
           </mesh>
         ))}
       </group>
+      {/* Burning Smoke & Spark Clouds */}
+      <Sparkles count={80} scale={[6, 6, 6]} size={8} speed={1.8} color="#EA580C" />
+      <Sparkles count={50} scale={[5, 7, 5]} size={12} speed={0.9} color="#475569" />
     </group>
   );
 }
 
-function DestinationSurface({ bodyType, visible, landed }) {
+function DestinationSurface({ bodyType, visible, landed, descentActive = false }) {
   if (!visible) return null;
 
   const isMoon = bodyType === 'moon';
   const isMars = bodyType === 'mars';
-  const groundColor = isMoon ? '#64748B' : isMars ? '#B45309' : '#3A7D44';
-  const padColor = isMoon ? '#94A3B8' : isMars ? '#9A3412' : '#64748B';
+  const groundColor = isMoon ? '#475569' : isMars ? '#99350E' : '#2D6A4F';
+  const rockColor = isMoon ? '#64748B' : isMars ? '#7C2D12' : '#334155';
+  const rimColor = isMoon ? '#94A3B8' : isMars ? '#C2410C' : '#52796F';
 
   return (
     <group position={[0, -0.35, 0]}>
+      {/* Broad Planetary Surface Terrain */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <circleGeometry args={[70, 48]} />
-        <meshStandardMaterial color={groundColor} roughness={0.92} />
+        <circleGeometry args={[95, 64]} />
+        <meshStandardMaterial color={groundColor} roughness={0.95} metalness={0.08} />
       </mesh>
-      {/* Crater Rim Rings on Moon / Mars */}
-      {(isMoon || isMars) &&
-        [
-          [6, 0.08, -5, 2.8],
-          [-8, 0.08, -7, 3.6],
-          [11, 0.08, 4, 2.2],
-        ].map(([x, y, z, r], i) => (
-          <mesh key={i} position={[x, y, z]} rotation={[-Math.PI / 2, 0, 0]}>
-            <torusGeometry args={[r, 0.25, 8, 24]} />
-            <meshStandardMaterial color={padColor} roughness={0.95} />
-          </mesh>
-        ))}
-      {/* Green Touchdown Beacon */}
+
+      {/* Concentric Impact Craters with Depth & Raised Rims */}
+      {(isMoon || isMars) && (
+        <group>
+          {[
+            { x: 7.5, z: -6.0, r: 3.8, depth: 0.15 },
+            { x: -9.5, z: -8.5, r: 4.8, depth: 0.2 },
+            { x: 14.0, z: 6.5, r: 3.2, depth: 0.12 },
+            { x: -12.0, z: 8.0, r: 2.8, depth: 0.1 },
+            { x: 0, z: 0, r: 2.2, depth: 0.08 }, // landing target crater
+          ].map((c, i) => (
+            <group key={i} position={[c.x, 0.04, c.z]}>
+              {/* Crater Raised Outer Rim */}
+              <mesh rotation={[-Math.PI / 2, 0, 0]}>
+                <torusGeometry args={[c.r, 0.35, 10, 32]} />
+                <meshStandardMaterial color={rimColor} roughness={0.98} />
+              </mesh>
+              {/* Darker Crater Interior Floor */}
+              <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]}>
+                <circleGeometry args={[c.r - 0.2, 24]} />
+                <meshStandardMaterial color={rockColor} roughness={0.99} />
+              </mesh>
+            </group>
+          ))}
+          {/* Scattered Martian / Lunar Boulders */}
+          {[
+            [3.2, 0.2, -2.5, 0.45],
+            [-4.5, 0.25, 3.2, 0.55],
+            [5.8, 0.18, 4.1, 0.38],
+            [-2.8, 0.3, -4.8, 0.62],
+            [8.5, 0.22, -1.2, 0.4],
+          ].map(([x, y, z, s], idx) => (
+            <mesh key={idx} position={[x, y * 0.5, z]} rotation={[idx * 0.4, idx * 0.7, 0]} castShadow>
+              <dodecahedronGeometry args={[s, 0]} />
+              <meshStandardMaterial color={rockColor} roughness={0.9} />
+            </mesh>
+          ))}
+        </group>
+      )}
+
+      {/* Terminal Descent: Expanding Regolith Dust Cloud from Retro-Thrusters */}
+      {(descentActive || landed) && (isMars || isMoon) && (
+        <group position={[0, 0.3, 0]}>
+          <Sparkles
+            count={90}
+            scale={[9, 1.8, 9]}
+            size={isMars ? 7 : 5}
+            speed={1.6}
+            color={isMars ? '#FB923C' : '#CBD5E1'}
+          />
+        </group>
+      )}
+
+      {/* Martian Atmospheric Dust Suspension */}
+      {isMars && (
+        <Sparkles count={60} scale={[25, 8, 25]} position={[0, 4, 0]} size={4} speed={0.4} color="#FDBA74" opacity={0.65} />
+      )}
+
+      {/* Scorch Ring at Landing Pad Center */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
+        <circleGeometry args={[2.8, 32]} />
+        <meshBasicMaterial color="#0A0605" transparent opacity={0.65} />
+      </mesh>
+
+      {/* Glowing Green Touchdown Beacon */}
       {landed && (
         <group position={[0, 0.2, 0]}>
           <mesh rotation={[-Math.PI / 2, 0, 0]}>
-            <ringGeometry args={[2.1, 2.35, 36]} />
+            <ringGeometry args={[2.4, 2.75, 42]} />
             <meshBasicMaterial color="#10B981" side={THREE.DoubleSide} />
           </mesh>
-          <pointLight position={[0, 1.2, 0]} intensity={6} distance={10} color="#10B981" />
+          <pointLight position={[0, 1.4, 0]} intensity={8} distance={12} color="#10B981" />
         </group>
       )}
     </group>
@@ -358,7 +462,7 @@ export default function FlightSimulationScene({
     (phase === 'PAYLOAD_DEPLOY' || phase === 'ORBIT_CONFIRMED' || phase === 'PAYLOAD_ERROR');
   const isDescending =
     !isOrbitalPhase && (phase === 'ENTRY_DESCENT' || phase === 'TERMINAL_DESCENT' || status === 'LANDED');
-  const isCrashed = status === 'CRASHED';
+  const isCrashed = status === 'CRASHED' || phase === 'EXPLODING';
   const isLanded = status === 'LANDED' && !isOrbitalPhase;
   const isOrbited = status === 'LANDED' && isOrbitalPhase;
 
@@ -443,12 +547,14 @@ export default function FlightSimulationScene({
       }
     }
 
-    // 4. Camera Switcher + Dynamic Launch Shake
+    // 4. Camera Switcher + Dynamic Launch / Detonation Shake
     const ry = rocketGroupRef.current ? rocketGroupRef.current.position.y : 0;
     const isBurning = !isPrelaunch && !isCrashed && !isLanded && phase !== 'FUEL_DEPLETED';
-    const shakeMag = isBurning && altitudeKm < 45 ? 0.085 : 0;
-    const shakeX = shakeMag ? (Math.sin(t * 53) * 0.5 + Math.cos(t * 71) * 0.5) * shakeMag : 0;
-    const shakeY = shakeMag ? (Math.cos(t * 61) * 0.5 + Math.sin(t * 43) * 0.5) * shakeMag : 0;
+    const isExploding = phase === 'EXPLODING';
+    const shakeMag = isExploding ? 0.38 : isBurning && altitudeKm < 45 ? 0.085 : 0;
+    const shakeFreq = isExploding ? 88 : 53;
+    const shakeX = shakeMag ? (Math.sin(t * shakeFreq) * 0.5 + Math.cos(t * 71) * 0.5) * shakeMag : 0;
+    const shakeY = shakeMag ? (Math.cos(t * (shakeFreq + 8)) * 0.5 + Math.sin(t * 43) * 0.5) * shakeMag : 0;
 
     if (cameraMode === 'HQ_CAM') {
       camTargetRef.current.set(0, 2.3, 5.2);
@@ -554,7 +660,12 @@ export default function FlightSimulationScene({
       )}
 
       {/* Destination Surface (Earth Recovery / Moon Craters / Mars Red Surface) */}
-      <DestinationSurface bodyType={bodyType} visible={showDestination} landed={isLanded} />
+      <DestinationSurface
+        bodyType={bodyType}
+        visible={showDestination}
+        landed={isLanded}
+        descentActive={isDescending}
+      />
 
       {/* Main Rocket Vehicle */}
       {!isCrashed && (

@@ -208,6 +208,18 @@ function SurfaceTouchdownScene({ rocketConfig, isMars }) {
         color={isMars ? '#FDBA74' : '#10B981'}
       />
 
+      {/* Distant Martian Crater Rim / Mountain Ridges */}
+      {isMars && (
+        <group position={[0, -1.5, -26]}>
+          {[-20, -10, 0, 10, 20].map((mx, idx) => (
+            <mesh key={idx} position={[mx, 3.8 + (idx % 3) * 1.6, -idx * 2]}>
+              <coneGeometry args={[8 + (idx % 2) * 2.5, 7.5, 6]} />
+              <meshStandardMaterial color="#7C2D12" roughness={0.99} />
+            </mesh>
+          ))}
+        </group>
+      )}
+
       {/* Planetary Surface */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
         <circleGeometry args={[55, 48]} />

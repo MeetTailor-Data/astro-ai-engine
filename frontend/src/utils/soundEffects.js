@@ -14,6 +14,197 @@ class SoundEngine {
     this.lastHydraulicAt = 0;
     this.lastKlaxonAt = 0;
     this.thrusterNodes = null;
+    this.speechQueue = [];
+    this.isSpeaking = false;
+  }
+
+  /**
+   * NASA Mission Control synthesized radio voice callout
+   * with authentic Quindar frequency chirps before and after transmission.
+   */
+  speakRadioCallout(rawText, priority = false) {
+    if (this.muted || typeof window === 'undefined' || !window.speechSynthesis) return;
+
+    // Clean text for speech clarity
+    const speechText = rawText
+      .replace(/^[A-Z\s\/\-0-9]+:\s*/i, '')
+      .replace(/ΔV/g, 'delta-vee')
+      .replace(/TWR/g, 'T-W-R')
+      .replace(/LEO/g, 'low Earth orbit')
+      .replace(/SSO/g, 'sun-synchronous orbit')
+      .replace(/Max-Q/g, 'max-Q')
+      .replace(/MECO/g, 'M-E-C-O')
+      .replace(/EDL/g, 'entry, descent, and landing');
+
+    if (!speechText.trim()) return;
+
+    try {
+      if (priority) {
+        window.speechSynthesis.cancel();
+      }
+
+      this.playRadioChirp();
+
+      const utterance = new SpeechSynthesisUtterance(speechText);
+      utterance.rate = 1.04;
+      utterance.pitch = 1.0;
+      utterance.volume = this.muted ? 0 : 0.85;
+
+      const voices = window.speechSynthesis.getVoices();
+      const voice = voices.find(
+        (v) =>
+          v.lang.startsWith('en') &&
+          (v.name.includes('David') ||
+            v.name.includes('Mark') ||
+            v.name.includes('Google US English') ||
+            v.name.includes('Natural') ||
+            v.name.includes('Samantha'))
+      ) || voices.find((v) => v.lang.startsWith('en'));
+
+      if (voice) utterance.voice = voice;
+
+      utterance.onend = () => {
+        setTimeout(() => this.playRadioChirp(), 80);
+      };
+
+      window.speechSynthesis.speak(utterance);
+    } catch {
+      // Graceful fallback if speech synthesis is disabled or blocked
+    }
+  }
+
+  cancelAllSpeech() {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
+    }
+  }
+
+  /**
+   * Terrifying groaning metal & structural aero stress sound before vehicle breakup.
+   */
+  playStructuralStrainSound() {
+    if (this.muted) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    const dur = 1.4;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(140, now);
+    osc.frequency.exponentialRampToValueAtTime(380, now + 0.5);
+    osc.frequency.linearRampToValueAtTime(85, now + dur);
+
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(450, now);
+    filter.Q.setValueAtTime(4.2, now);
+
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.linearRampToValueAtTime(0.14, now + 0.2);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + dur);
+  }
+
+  /**
+   * Catastrophic multi-burst rocket detonation with sub-bass shockwave.
+   */
+  playCatastrophicExplosionSound() {
+    if (this.muted) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    const dur = 2.8;
+
+    // 1. Blinding primary detonation burst
+    const bufSize = Math.floor(ctx.sampleRate * dur);
+    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i += 1) {
+      data[i] = Math.random() * 2 - 1;
+    }
+    const noise = ctx.createBufferSource();
+    noise.buffer = buf;
+
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.setValueAtTime(1600, now);
+    lp.frequency.exponentialRampToValueAtTime(45, now + dur);
+
+    const nGain = ctx.createGain();
+    nGain.gain.setValueAtTime(0.45, now);
+    // Secondary detonation pulses
+    nGain.gain.exponentialRampToValueAtTime(0.18, now + 0.35);
+    nGain.gain.linearRampToValueAtTime(0.32, now + 0.48); // 2nd explosion
+    nGain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+    noise.connect(lp);
+    lp.connect(nGain);
+    nGain.connect(ctx.destination);
+    noise.start(now);
+    noise.stop(now + dur);
+
+    // 2. Heavy Sub-Bass Earth-shattering concussion
+    const sub = ctx.createOscillator();
+    const subGain = ctx.createGain();
+    sub.type = 'sine';
+    sub.frequency.setValueAtTime(120, now);
+    sub.frequency.exponentialRampToValueAtTime(18, now + 1.2);
+    subGain.gain.setValueAtTime(0.48, now);
+    subGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.4);
+
+    sub.connect(subGain);
+    subGain.connect(ctx.destination);
+    sub.start(now);
+    sub.stop(now + 1.5);
+  }
+
+  /**
+   * Terminal descent retro-thruster ground blast & dust displacement.
+   */
+  playRetroLandingBlastSound() {
+    if (this.muted) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    const dur = 2.2;
+    const bufSize = Math.floor(ctx.sampleRate * dur);
+    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i += 1) d[i] = Math.random() * 2 - 1;
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = buf;
+
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.setValueAtTime(380, now);
+    bp.frequency.linearRampToValueAtTime(180, now + dur);
+    bp.Q.setValueAtTime(1.8, now);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.18, now + 0.3);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+    noise.connect(bp);
+    bp.connect(gain);
+    gain.connect(ctx.destination);
+    noise.start(now);
+    noise.stop(now + dur);
   }
 
   ensureContext() {
@@ -672,6 +863,197 @@ class SoundEngine {
       // Ignore already stopped
     }
     this.thrusterNodes = null;
+    this.speechQueue = [];
+    this.isSpeaking = false;
+  }
+
+  /**
+   * NASA Mission Control synthesized radio voice callout
+   * with authentic Quindar frequency chirps before and after transmission.
+   */
+  speakRadioCallout(rawText, priority = false) {
+    if (this.muted || typeof window === 'undefined' || !window.speechSynthesis) return;
+
+    // Clean text for speech clarity
+    const speechText = rawText
+      .replace(/^[A-Z\s\/\-0-9]+:\s*/i, '')
+      .replace(/ΔV/g, 'delta-vee')
+      .replace(/TWR/g, 'T-W-R')
+      .replace(/LEO/g, 'low Earth orbit')
+      .replace(/SSO/g, 'sun-synchronous orbit')
+      .replace(/Max-Q/g, 'max-Q')
+      .replace(/MECO/g, 'M-E-C-O')
+      .replace(/EDL/g, 'entry, descent, and landing');
+
+    if (!speechText.trim()) return;
+
+    try {
+      if (priority) {
+        window.speechSynthesis.cancel();
+      }
+
+      this.playRadioChirp();
+
+      const utterance = new SpeechSynthesisUtterance(speechText);
+      utterance.rate = 1.04;
+      utterance.pitch = 1.0;
+      utterance.volume = this.muted ? 0 : 0.85;
+
+      const voices = window.speechSynthesis.getVoices();
+      const voice = voices.find(
+        (v) =>
+          v.lang.startsWith('en') &&
+          (v.name.includes('David') ||
+            v.name.includes('Mark') ||
+            v.name.includes('Google US English') ||
+            v.name.includes('Natural') ||
+            v.name.includes('Samantha'))
+      ) || voices.find((v) => v.lang.startsWith('en'));
+
+      if (voice) utterance.voice = voice;
+
+      utterance.onend = () => {
+        setTimeout(() => this.playRadioChirp(), 80);
+      };
+
+      window.speechSynthesis.speak(utterance);
+    } catch {
+      // Graceful fallback if speech synthesis is disabled or blocked
+    }
+  }
+
+  cancelAllSpeech() {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
+    }
+  }
+
+  /**
+   * Terrifying groaning metal & structural aero stress sound before vehicle breakup.
+   */
+  playStructuralStrainSound() {
+    if (this.muted) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    const dur = 1.4;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(140, now);
+    osc.frequency.exponentialRampToValueAtTime(380, now + 0.5);
+    osc.frequency.linearRampToValueAtTime(85, now + dur);
+
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(450, now);
+    filter.Q.setValueAtTime(4.2, now);
+
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.linearRampToValueAtTime(0.14, now + 0.2);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + dur);
+  }
+
+  /**
+   * Catastrophic multi-burst rocket detonation with sub-bass shockwave.
+   */
+  playCatastrophicExplosionSound() {
+    if (this.muted) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    const dur = 2.8;
+
+    // 1. Blinding primary detonation burst
+    const bufSize = Math.floor(ctx.sampleRate * dur);
+    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i += 1) {
+      data[i] = Math.random() * 2 - 1;
+    }
+    const noise = ctx.createBufferSource();
+    noise.buffer = buf;
+
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.setValueAtTime(1600, now);
+    lp.frequency.exponentialRampToValueAtTime(45, now + dur);
+
+    const nGain = ctx.createGain();
+    nGain.gain.setValueAtTime(0.45, now);
+    // Secondary detonation pulses
+    nGain.gain.exponentialRampToValueAtTime(0.18, now + 0.35);
+    nGain.gain.linearRampToValueAtTime(0.32, now + 0.48); // 2nd explosion
+    nGain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+    noise.connect(lp);
+    lp.connect(nGain);
+    nGain.connect(ctx.destination);
+    noise.start(now);
+    noise.stop(now + dur);
+
+    // 2. Heavy Sub-Bass Earth-shattering concussion
+    const sub = ctx.createOscillator();
+    const subGain = ctx.createGain();
+    sub.type = 'sine';
+    sub.frequency.setValueAtTime(120, now);
+    sub.frequency.exponentialRampToValueAtTime(18, now + 1.2);
+    subGain.gain.setValueAtTime(0.48, now);
+    subGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.4);
+
+    sub.connect(subGain);
+    subGain.connect(ctx.destination);
+    sub.start(now);
+    sub.stop(now + 1.5);
+  }
+
+  /**
+   * Terminal descent retro-thruster ground blast & dust displacement.
+   */
+  playRetroLandingBlastSound() {
+    if (this.muted) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    const dur = 2.2;
+    const bufSize = Math.floor(ctx.sampleRate * dur);
+    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i += 1) d[i] = Math.random() * 2 - 1;
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = buf;
+
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.setValueAtTime(380, now);
+    bp.frequency.linearRampToValueAtTime(180, now + dur);
+    bp.Q.setValueAtTime(1.8, now);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.18, now + 0.3);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+    noise.connect(bp);
+    bp.connect(gain);
+    gain.connect(ctx.destination);
+    noise.start(now);
+    noise.stop(now + dur);
   }
 
   /**

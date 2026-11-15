@@ -31,7 +31,7 @@ const CAMERA_MODES = [
 
 const INITIAL_TELEMETRY = {
   tSec: 0,
-  countdownSec: 5,
+  countdownSec: 10,
   altitudeKm: 0,
   velocityMs: 0,
   fuelPct: 100,
@@ -143,9 +143,10 @@ export default function LaunchControl() {
     setFinalOutcome(null);
     prevCountdownRef.current = null;
     prevStageSepRef.current = false;
+    const hasExplodedRef = { current: false };
 
     const missionId = activeMissionId || `sim-${Date.now()}`;
-    setTelemetry((prev) => ({ ...prev, status: 'IN_FLIGHT', phase: 'COUNTDOWN', countdownSec: 5 }));
+    setTelemetry((prev) => ({ ...prev, status: 'IN_FLIGHT', phase: 'COUNTDOWN', countdownSec: 10 }));
 
     try {
       await runMission(missionId);
@@ -164,7 +165,7 @@ export default function LaunchControl() {
         setCurveHistory((prev) => {
           const last = prev[prev.length - 1];
           if (!last || tick.tSec - last.tSec >= 0.35 || tick.phase !== last.phase) {
-            return [...prev.slice(-75), tick];
+            return [...prev.slice(-85), tick];
           }
           return prev;
         });
@@ -176,14 +177,21 @@ export default function LaunchControl() {
         }
 
         // Liftoff thruster rumble
-        if (tick.phase !== 'COUNTDOWN' && tick.status === 'IN_FLIGHT') {
+        if (tick.phase !== 'COUNTDOWN' && tick.status === 'IN_FLIGHT' && tick.phase !== 'EXPLODING') {
           if (prevCountdownRef.current !== 0) {
             prevCountdownRef.current = 0;
             soundEngine.playCountdownBeep(true);
             soundEngine.startThrusterRumble();
           }
-          const rumbleIntensity = tick.phase === 'FUEL_DEPLETED' ? 0 : tick.stageSeparated ? 0.55 : 1.05;
+          const rumbleIntensity = tick.phase === 'FUEL_DEPLETED' ? 0 : tick.stageSeparated ? 0.55 : 1.1;
           soundEngine.updateThrusterRumble(rumbleIntensity);
+        }
+
+        // Catastrophic vehicle detonation in 3D
+        if (tick.phase === 'EXPLODING' && !hasExplodedRef.current) {
+          hasExplodedRef.current = true;
+          soundEngine.stopThrusterRumble();
+          soundEngine.playCatastrophicExplosionSound();
         }
 
         // Stage separation pneumatic clunk
@@ -192,11 +200,17 @@ export default function LaunchControl() {
           soundEngine.playStageSeparationSound();
         }
 
-        // HQ Callout radio log
+        // HQ Callout radio log + NASA synthesized voice broadcast
         if (tick.hqCallout) {
-          soundEngine.playRadioChirp();
-          const tLabel = tick.phase === 'COUNTDOWN' ? `T-00:0${tick.countdownSec || 1}` : `T+${String(Math.floor(tick.tSec)).padStart(2, '0')}s`;
-          setRadioLog((prev) => [...prev.slice(-14), { id: `${Date.now()}-${Math.random()}`, time: tLabel, text: tick.hqCallout }]);
+          soundEngine.speakRadioCallout(tick.hqCallout, tick.phase === 'EXPLODING');
+          const tLabel =
+            tick.phase === 'COUNTDOWN'
+              ? `T-00:${String(tick.countdownSec || 1).padStart(2, '0')}`
+              : `T+${String(Math.floor(tick.tSec)).padStart(2, '0')}s`;
+          setRadioLog((prev) => [
+            ...prev.slice(-18),
+            { id: `${Date.now()}-${Math.random()}`, time: tLabel, text: tick.hqCallout },
+          ]);
         }
       },
       (result) => {
@@ -210,9 +224,9 @@ export default function LaunchControl() {
 
         if (outcomeStatus === 'LANDED') {
           soundEngine.playLandingFanfare();
-          confetti({ particleCount: 95, spread: 75, origin: { y: 0.65 } });
-        } else {
-          soundEngine.playExplosionBoom();
+          confetti({ particleCount: 110, spread: 80, origin: { y: 0.65 } });
+        } else if (!hasExplodedRef.current) {
+          soundEngine.playCatastrophicExplosionSound();
         }
       },
       {

@@ -608,13 +608,38 @@ function StraponBoosterMesh({ angle, radius, xray }) {
 function EngineNozzleMesh({ x, z, xray }) {
   return (
     <group position={[x, -0.94, z]}>
+      {/* Outer Niobium / Inconel Bell with Heat-Discoloration */}
       <mesh castShadow>
-        <cylinderGeometry args={[0.09, 0.19, 0.4, 18]} />
-        <HullMaterial color="#334155" xray={xray} metalness={0.9} roughness={0.18} />
+        <cylinderGeometry args={[0.09, 0.22, 0.44, 24]} />
+        <HullMaterial color="#1E293B" xray={xray} metalness={0.92} roughness={0.16} />
       </mesh>
+      {/* Stiffening Reinforcement Rings along Bell */}
+      <mesh position={[0, -0.06, 0]}>
+        <torusGeometry args={[0.165, 0.016, 6, 24]} />
+        <meshStandardMaterial color="#94A3B8" metalness={0.9} roughness={0.2} />
+      </mesh>
+      <mesh position={[0, 0.12, 0]}>
+        <torusGeometry args={[0.115, 0.018, 6, 24]} />
+        <meshStandardMaterial color="#E2E8F0" metalness={0.85} roughness={0.25} />
+      </mesh>
+      {/* Inner Glowing Combustion Throat */}
       <mesh position={[0, 0.14, 0]}>
-        <torusGeometry args={[0.16, 0.02, 6, 20]} />
-        <meshStandardMaterial color="#94A3B8" metalness={0.85} roughness={0.2} />
+        <cylinderGeometry args={[0.075, 0.08, 0.12, 16]} />
+        <meshStandardMaterial color="#FF6B1A" emissive="#FF4500" emissiveIntensity={0.95} />
+      </mesh>
+      {/* Turbopump Exhaust Duct alongside Engine Bell */}
+      <mesh position={[0.13, 0.02, 0]} rotation={[0, 0, 0.18]}>
+        <cylinderGeometry args={[0.022, 0.026, 0.36, 10]} />
+        <meshStandardMaterial color="#475569" metalness={0.85} roughness={0.2} />
+      </mesh>
+      {/* Hydraulic Gimbal Actuator Struts */}
+      <mesh position={[-0.09, 0.18, 0.05]} rotation={[0.2, 0, -0.2]}>
+        <cylinderGeometry args={[0.012, 0.012, 0.16, 8]} />
+        <meshStandardMaterial color="#CBD5E1" metalness={0.8} />
+      </mesh>
+      <mesh position={[0.09, 0.18, -0.05]} rotation={[-0.2, 0, 0.2]}>
+        <cylinderGeometry args={[0.012, 0.012, 0.16, 8]} />
+        <meshStandardMaterial color="#CBD5E1" metalness={0.8} />
       </mesh>
       {xray && (
         <mesh position={[0, 0.26, 0]}>
@@ -660,6 +685,34 @@ function MainBoosterGeom({ partId, xray, checkerTex, aestroLogoTex }) {
             <cylinderGeometry args={[0.475, 0.49, 0.34, 28]} />
             <meshStandardMaterial color="#1E293B" metalness={0.6} roughness={0.35} />
           </mesh>
+          {/* 4 Titanium Aerodynamic Grid Fins on Booster Upper Interstage */}
+          <group position={[0, 0.65, 0]}>
+            {[0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2].map((angle, idx) => (
+              <group key={idx} rotation={[0, angle, 0]}>
+                <group position={[0.54, 0, 0]} rotation={[0, 0, 0.15]}>
+                  <mesh castShadow>
+                    <boxGeometry args={[0.16, 0.28, 0.02]} />
+                    <meshStandardMaterial color="#475569" metalness={0.92} roughness={0.25} />
+                  </mesh>
+                  <mesh>
+                    <boxGeometry args={[0.14, 0.25, 0.022]} />
+                    <meshStandardMaterial color="#64748B" wireframe metalness={0.95} />
+                  </mesh>
+                </group>
+              </group>
+            ))}
+          </group>
+          {/* External Pressurization Raceways / Feed Line Trays */}
+          <group>
+            <mesh position={[0.485, 0, 0]}>
+              <boxGeometry args={[0.025, 1.45, 0.04]} />
+              <meshStandardMaterial color="#CBD5E1" metalness={0.6} roughness={0.3} />
+            </mesh>
+            <mesh position={[-0.485, 0, 0]}>
+              <boxGeometry args={[0.025, 1.45, 0.04]} />
+              <meshStandardMaterial color="#CBD5E1" metalness={0.6} roughness={0.3} />
+            </mesh>
+          </group>
         </>
       )}
       {xray && (

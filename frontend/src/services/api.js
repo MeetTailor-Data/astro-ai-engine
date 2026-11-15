@@ -333,8 +333,9 @@ export function createLocalPhysicsStream({
   let rafId = null;
   let stopped = false;
   let lastNow = performance.now();
-  let simTime = 0; // 0..5 = countdown, 5..30 = flight
+  let simTime = 0; // 0..10 = 10s countdown, 10..125 = flight timeline
   let lastTickEmit = 0;
+  let explodingStartTime = null;
   const emittedCallouts = new Set();
 
   const emitOnce = (key, text) => {
@@ -377,158 +378,225 @@ export function createLocalPhysicsStream({
     let edlDeployed = false;
     let anomalyType = null;
     let status = 'IN_FLIGHT';
-    const countdownSec = simTime < 5 ? Math.max(0, Math.ceil(5 - simTime)) : 0;
+    const countdownSec = simTime < 10 ? Math.max(0, Math.ceil(10 - simTime)) : 0;
 
-    if (simTime < 5) {
+    // ─── 1. REALISTIC 10-SECOND NASA TERMINAL COUNTDOWN (simTime 0 -> 10) ───
+    if (simTime < 10) {
       phase = 'COUNTDOWN';
-      if (simTime >= 0.1) hqCallout = emitOnce('T5', 'FLIGHT DIRECTOR: All stations GO for launch. Auto-sequence start.');
-      if (simTime >= 2.0) hqCallout = emitOnce('T3', 'PROPULSION: Main engine ignition sequence start. Chamber pressure rising.');
+      if (simTime >= 0.2) hqCallout = emitOnce('T10', 'FLIGHT DIRECTOR: Terminal count auto-sequence started. Pad-39A cleared.');
+      if (simTime >= 2.5) hqCallout = emitOnce('T7', 'GUIDANCE: Flight computer transfer to internal guidance verified.');
+      if (simTime >= 5.0) hqCallout = emitOnce('T5', 'PROPULSION: Main engine turbopumps spinning up. Chamber pressures nominal.');
+      if (simTime >= 7.5) hqCallout = emitOnce('T2', 'FIDO: Sound suppression deluge active. 3, 2, 1... Main engine ignition.');
     } else {
-      const flightT = simTime - 5; // seconds since T-0
+      const flightT = simTime - 10; // seconds since T-0 liftoff
 
+      // ─── 2. ANOMALY: LOW TWR / PAD STALL ──────────────────────────────────
       if (failureCode === 'TWR_LOW') {
-        if (flightT < 3.6) {
+        if (flightT < 12.0) {
           phase = 'LIFTOFF';
-          altitudeKm = Math.max(0, Math.sin((flightT / 3.6) * Math.PI) * 0.045);
-          velocityMs = 12 * Math.cos((flightT / 3.6) * (Math.PI * 0.5));
-          fuelPct = Math.max(88, 100 - flightT * 2.8);
-          gForce = 0.88;
-          hqCallout = emitOnce('TWR_WARN', 'PROPULSION: WARNING — Liftoff TWR below minimum! Vehicle losing vertical stability!');
+          const p = flightT / 12.0;
+          altitudeKm = Math.max(0, Math.sin(p * Math.PI) * 0.18);
+          velocityMs = Math.round(18 * Math.cos(p * Math.PI * 0.5));
+          fuelPct = Math.max(76, 100 - flightT * 2.0);
+          gForce = 0.94;
+          if (flightT >= 0.2) hqCallout = emitOnce('TWR_LIFT', 'FLIGHT DIRECTOR: Liftoff! Rocket struggling to clear umbilical tower.');
+          if (flightT >= 5.5) hqCallout = emitOnce('TWR_WARN', 'PROPULSION: WARNING — Thrust deficit! TWR < 1.25, vehicle losing vertical momentum!');
         } else {
-          const crashTick = {
-            tSec: Number(flightT.toFixed(2)),
-            countdownSec: 0,
-            altitudeKm: 0,
-            velocityMs: 28,
-            fuelPct: 86,
-            gForce: 9.4,
-            phase: 'PAD_ANOMALY',
-            hqCallout: 'FLIGHT DIRECTOR: Pad stall! Vehicle tipped over — RSO destruct triggered!',
-            status: 'CRASHED',
-            stageSeparated: false,
-            edlDeployed: false,
-            anomalyType: 'TWR_LOW',
-          };
-          finishMission('CRASHED', crashTick);
-          return;
-        }
-      } else if (failureCode === 'OVER_G' || failureCode === 'FAIRING_FAIL') {
-        if (flightT < 6.4) {
-          phase = flightT < 3.0 ? 'LIFTOFF' : 'MAX_Q';
-          altitudeKm = Math.pow(flightT, 2.05) * 0.85;
-          velocityMs = flightT * 310;
-          fuelPct = Math.max(62, 100 - flightT * 5.8);
-          gForce = failureCode === 'OVER_G' ? 4.6 + flightT * 0.36 : 2.1 + flightT * 0.25;
-          if (flightT >= 0.2) {
-            hqCallout = emitOnce(
-              'LIFTOFF',
-              failureCode === 'OVER_G'
-                ? 'FLIGHT DIRECTOR: Liftoff! Tower cleared — acceleration way above nominal!'
-                : 'FLIGHT DIRECTOR: Liftoff! Tower cleared — aerodynamic vibration rising on payload fairing!'
-            );
-          }
-          if (flightT >= 3.2) {
-            hqCallout = emitOnce(
-              'OVER_G_WARN',
-              failureCode === 'OVER_G'
-                ? 'GUIDANCE: CRITICAL — Extreme G-load approaching Max-Q structural limit!'
-                : 'GUIDANCE: CRITICAL — Fairing thermal/aerodynamic shear exceeding design limit at Max-Q!'
-            );
-          }
-        } else {
-          const crashTick = {
-            tSec: Number(flightT.toFixed(2)),
-            countdownSec: 0,
-            altitudeKm: 38.4,
-            velocityMs: 1980,
-            fuelPct: 62,
-            gForce: failureCode === 'OVER_G' ? 7.2 : 4.8,
-            phase: 'MAX_Q_BREAKUP',
-            hqCallout:
-              failureCode === 'OVER_G'
-                ? 'GUIDANCE: Structural failure at Max-Q! Telemetry signal lost!'
-                : 'GUIDANCE: Payload fairing breached at Max-Q! Vehicle lost!',
-            status: 'CRASHED',
-            stageSeparated: false,
-            edlDeployed: false,
-            anomalyType: failureCode,
-          };
-          finishMission('CRASHED', crashTick);
-          return;
-        }
-      } else {
-        // Normal ascent up to Stage Separation (flightT = 9.5s)
-        if (flightT < 9.5) {
-          const p = flightT / 9.5;
-          phase = flightT < 3.0 ? 'LIFTOFF' : flightT < 6.5 ? 'MAX_Q' : 'ASCENT';
-          altitudeKm = Math.pow(p, 1.85) * 78;
-          velocityMs = Math.pow(p, 1.35) * 2450;
-          fuelPct = Math.max(42, 100 - p * 58);
-          gForce = 1.35 + p * 1.9;
-          if (flightT >= 0.15) hqCallout = emitOnce('LIFTOFF', 'FLIGHT DIRECTOR: Liftoff! Vehicle has cleared the tower!');
-          if (flightT >= 3.5) hqCallout = emitOnce('MAXQ', 'GUIDANCE: Max-Q passed. Aerodynamic loads nominal.');
-        } else if (failureCode === 'DELTAV_LOW') {
-          stageSeparated = true;
-          const postT = flightT - 9.5;
-          if (postT < 4.5) {
-            phase = 'STAGE_SEP';
-            altitudeKm = 78 + postT * 8.5;
-            velocityMs = 2450 + postT * 260;
-            fuelPct = Math.max(0, 42 - (postT / 4.2) * 42);
-            gForce = fuelPct > 0 ? 2.4 : 0.05;
-            hqCallout = emitOnce('SEP', 'FIDO: Stage 1 separation confirmed! Upper stage burn in progress.');
-            if (postT >= 3.8) hqCallout = emitOnce('DV_WARN', 'PROPULSION: CRITICAL — Upper stage propellant depleted! Insufficient Delta-V!');
-          } else if (postT < 7.2) {
-            phase = 'FUEL_DEPLETED';
-            const fallP = (postT - 4.5) / 2.7;
-            altitudeKm = Math.max(12, 116 - fallP * fallP * 104);
-            velocityMs = Math.max(420, 3620 - fallP * 1400);
-            fuelPct = 0;
-            gForce = 0.2 + fallP * 3.8;
-          } else {
-            const crashTick = {
+          // Explosive pad impact & fireball
+          if (!explodingStartTime) explodingStartTime = simTime;
+          const explodeAge = simTime - explodingStartTime;
+          phase = 'EXPLODING';
+          status = 'CRASHED';
+          anomalyType = 'TWR_LOW';
+          altitudeKm = 0;
+          velocityMs = 0;
+          fuelPct = 72;
+          gForce = 8.5;
+          hqCallout = emitOnce('TWR_BOOM', 'FLIGHT DIRECTOR: CATASTROPHIC PAD IMPACT! Rocket tipped over into flame trench! Full vehicle explosion!');
+
+          if (explodeAge >= 6.5) {
+            finishMission('CRASHED', {
               tSec: Number(flightT.toFixed(2)),
               countdownSec: 0,
-              altitudeKm: 8.5,
-              velocityMs: 2150,
-              fuelPct: 0,
+              altitudeKm: 0,
+              velocityMs: 0,
+              fuelPct: 72,
               gForce: 8.5,
-              phase: 'FUEL_DEPLETED',
-              hqCallout: 'FIDO: Suborbital re-impact! Vehicle lost due to Delta-V shortfall.',
+              phase: 'PAD_ANOMALY',
+              hqCallout: 'FLIGHT DIRECTOR: Vehicle lost on launchpad. TWR insufficient to sustain flight.',
               status: 'CRASHED',
-              stageSeparated: true,
+              stageSeparated: false,
               edlDeployed: false,
-              anomalyType: 'DELTAV_LOW',
-            };
-            finishMission('CRASHED', crashTick);
+              anomalyType: 'TWR_LOW',
+            });
             return;
           }
-        } else if (flightT < 15.5) {
-          // Upper stage burn to space / orbit insertion (flightT 9.5 -> 15.5)
+        }
+      }
+      // ─── 3. ANOMALY: MAX-Q STRUCTURAL FAILURE OR FAIRING BREACH ──────────
+      else if (failureCode === 'OVER_G' || failureCode === 'FAIRING_FAIL') {
+        if (flightT < 38.0) {
+          const p = flightT / 38.0;
+          phase = flightT < 14.0 ? 'LIFTOFF' : flightT < 26.0 ? 'TRANSONIC' : 'MAX_Q';
+          altitudeKm = Math.pow(p, 1.9) * 28.5;
+          velocityMs = Math.pow(p, 1.4) * 1650;
+          fuelPct = Math.max(54, 100 - p * 46);
+          gForce = failureCode === 'OVER_G' ? 2.2 + p * 3.8 : 1.4 + p * 1.6;
+
+          if (flightT >= 0.2) hqCallout = emitOnce('MQ_LIFT', 'FLIGHT DIRECTOR: Liftoff! Rocket has cleared the launch tower.');
+          if (flightT >= 15.0) hqCallout = emitOnce('MQ_MACH1', 'FIDO: Vehicle is transonic. Passing Mach 1.');
+          if (flightT >= 28.0) {
+            hqCallout = emitOnce(
+              'MQ_WARN',
+              failureCode === 'OVER_G'
+                ? 'GUIDANCE: CRITICAL WARNING — Structural acceleration exceeding 5.5 Gs in Max-Q!'
+                : 'GUIDANCE: CRITICAL WARNING — Unaerodynamic payload nosecone! Extreme Max-Q dynamic pressure!'
+            );
+          }
+        } else {
+          // Mid-air catastrophic detonation at Max-Q
+          if (!explodingStartTime) explodingStartTime = simTime;
+          const explodeAge = simTime - explodingStartTime;
+          phase = 'EXPLODING';
+          status = 'CRASHED';
+          anomalyType = failureCode;
+          altitudeKm = 28.5;
+          velocityMs = 1650;
+          fuelPct = 52;
+          gForce = 9.8;
+          hqCallout = emitOnce(
+            'MQ_BOOM',
+            failureCode === 'OVER_G'
+              ? 'FIDO: STRUCTURAL FAILURE AT MAX-Q! Rocket buckled under aerodynamic shear! Vehicle disintegrated!'
+              : 'FIDO: PAYLOAD FAIRING COLLAPSED! Aerodynamic shock disintegrated the rocket in mid-air!'
+          );
+
+          if (explodeAge >= 6.5) {
+            finishMission('CRASHED', {
+              tSec: Number(flightT.toFixed(2)),
+              countdownSec: 0,
+              altitudeKm: 28.5,
+              velocityMs: 1650,
+              fuelPct: 52,
+              gForce: 9.8,
+              phase: 'MAX_Q_BREAKUP',
+              hqCallout: 'FLIGHT DIRECTOR: Telemetry lost at Max-Q. Range Safety destruct confirmed.',
+              status: 'CRASHED',
+              stageSeparated: false,
+              edlDeployed: false,
+              anomalyType: failureCode,
+            });
+            return;
+          }
+        }
+      }
+      // ─── 4. STANDARD FLIGHT / LEO ORBIT / DEEP SPACE (110 - 120s) ──────────
+      else {
+        // Phase 1: Liftoff & Initial Pitch Maneuver (0 -> 18s)
+        if (flightT < 18.0) {
+          const p = flightT / 18.0;
+          phase = 'LIFTOFF';
+          altitudeKm = Math.pow(p, 1.8) * 4.2;
+          velocityMs = Math.pow(p, 1.2) * 240;
+          fuelPct = 100 - p * 12;
+          gForce = 1.25 + p * 0.45;
+          if (flightT >= 0.2) hqCallout = emitOnce('LIFT_OK', 'FLIGHT DIRECTOR: Liftoff! Rocket has cleared Pad-39A. Pitch and roll program initiated.');
+          if (flightT >= 10.0) hqCallout = emitOnce('PITCH_OK', 'GUIDANCE: Trajectory is nominal. Rocket pitching downrange along flight azimuth.');
+        }
+        // Phase 2: Transonic & Max-Q (18 -> 45s)
+        else if (flightT < 45.0) {
+          const p = (flightT - 18.0) / 27.0;
+          phase = p < 0.45 ? 'TRANSONIC' : 'MAX_Q';
+          altitudeKm = 4.2 + Math.pow(p, 1.6) * 28.0;
+          velocityMs = 240 + Math.pow(p, 1.3) * 1150;
+          fuelPct = 88 - p * 22;
+          gForce = 1.7 + Math.sin(p * Math.PI) * 0.95;
+          if (flightT >= 20.0) hqCallout = emitOnce('MACH1', 'FIDO: Vehicle is supersonic. Aerodynamic drag rising toward peak dynamic pressure.');
+          if (flightT >= 32.0) hqCallout = emitOnce('MAXQ_THROTTLE', 'PROPULSION: Throttling main engines through Max-Q. Vehicle holding steady.');
+          if (flightT >= 42.0) hqCallout = emitOnce('MAXQ_OK', 'GUIDANCE: Max-Q passed. Throttling engines back to 100% thrust.');
+        }
+        // Phase 3: Mesosphere Acceleration to MECO (45 -> 72s)
+        else if (flightT < 72.0) {
+          const p = (flightT - 45.0) / 27.0;
+          phase = 'ASCENT';
+          altitudeKm = 32.2 + Math.pow(p, 1.4) * 58.0; // reaches 90 km
+          velocityMs = 1390 + Math.pow(p, 1.2) * 1550; // reaches 2,940 m/s
+          fuelPct = 66 - p * 34; // reaches 32%
+          gForce = 2.4 + p * 1.5;
+          if (flightT >= 50.0) hqCallout = emitOnce('MESO', 'EECOM: Passing 50 km altitude. Sky turning black, ambient air pressure dropping.');
+          if (flightT >= 66.0) hqCallout = emitOnce('MECO_WARN', 'FIDO: Main booster propellant nearing cutoff target. Standing by for MECO.');
+        }
+        // Phase 4: MECO & Stage 1 Separation (72 -> 84s)
+        else if (flightT < 84.0) {
           stageSeparated = true;
-          const p = (flightT - 9.5) / 6.0;
-          phase = p < 0.35 ? 'STAGE_SEP' : 'ORBIT_INSERT';
-          const peakAlt = isEarthLeo ? targetAltKm : 240;
-          altitudeKm = 78 + p * (peakAlt - 78);
-          velocityMs = 2450 + p * 5350;
-          fuelPct = Math.max(16, 42 - p * 26);
-          gForce = 1.8 + p * 1.4;
-          if (flightT >= 9.6) hqCallout = emitOnce('SEP', 'FIDO: Stage 1 separation confirmed! Upper vacuum engine ignition!');
-          if (flightT >= 13.0) hqCallout = emitOnce('ORBIT', 'EECOM: Karman line crossed. Deep space trajectory nominal.');
-        } else if (isEarthLeo) {
-          // Earth LEO mission stays in space at 400 km to deploy satellite!
+          const p = (flightT - 72.0) / 12.0;
+          phase = 'STAGE_SEP';
+          altitudeKm = 90.2 + p * 22.0; // reaches 112 km
+          velocityMs = 2940 + p * 420;
+          fuelPct = 32 - p * 4;
+          gForce = 0.05 + p * 1.8;
+          if (flightT >= 72.5) hqCallout = emitOnce('MECO_OK', 'PROPULSION: MECO confirmed! Main Engine Cutoff. Pneumatic latches released.');
+          if (flightT >= 77.0) hqCallout = emitOnce('SEP_OK', 'FIDO: Stage 1 separation confirmed! First stage tumbling clear.');
+        }
+        // Phase 5: Upper Stage Vacuum Burn & Fairing Jettison (84 -> 98s)
+        else if (flightT < 98.0) {
+          stageSeparated = true;
+          const p = (flightT - 84.0) / 14.0;
+          phase = 'VACUUM_BURN';
+
+          // Delta-V deficit failure check
+          if (failureCode === 'DELTAV_LOW' && p >= 0.45) {
+            if (!explodingStartTime) explodingStartTime = simTime;
+            const explodeAge = simTime - explodingStartTime;
+            phase = 'EXPLODING';
+            status = 'CRASHED';
+            anomalyType = 'DELTAV_LOW';
+            altitudeKm = 118.0;
+            velocityMs = 3800;
+            fuelPct = 0;
+            gForce = 0.05;
+            hqCallout = emitOnce('DV_FAIL', 'PROPULSION: UPPER STAGE FLAMEOUT! Propellant depleted! Velocity short by 3,200 m/s — suborbital ballistic fall!');
+
+            if (explodeAge >= 6.5) {
+              finishMission('CRASHED', {
+                tSec: Number(flightT.toFixed(2)),
+                countdownSec: 0,
+                altitudeKm: 12.0,
+                velocityMs: 2400,
+                fuelPct: 0,
+                gForce: 6.2,
+                phase: 'FUEL_DEPLETED',
+                hqCallout: 'FIDO: Suborbital atmospheric re-entry impact. Mission failed due to Delta-V deficit.',
+                status: 'CRASHED',
+                stageSeparated: true,
+                edlDeployed: false,
+                anomalyType: 'DELTAV_LOW',
+              });
+              return;
+            }
+          }
+
+          altitudeKm = 112.2 + p * (isEarthLeo ? 288.0 : 128.0);
+          velocityMs = 3360 + p * 4310; // accelerates to ~7,670 m/s
+          fuelPct = Math.max(14, 28 - p * 14);
+          gForce = 1.95 + p * 0.6;
+          if (flightT >= 85.0) hqCallout = emitOnce('VAC_IGNITE', 'GUIDANCE: Upper stage vacuum engine ignition confirmed! Deep space telemetry nominal.');
+          if (flightT >= 91.0) hqCallout = emitOnce('FAIRING_JETT', 'EECOM: Karman line cleared! Payload fairing split and jettisoned! Satellite exposed to sunlight.');
+        }
+        // Phase 6A: Earth LEO Weather Satellite Mission Deployment (98 -> 118s)
+        else if (isEarthLeo) {
           stageSeparated = true;
           edlDeployed = true;
-          if (flightT < 20.5) {
+          const p = (flightT - 98.0) / 20.0;
+
+          if (flightT < 118.0) {
             phase = 'PAYLOAD_DEPLOY';
             altitudeKm = targetAltKm;
             velocityMs = 7670;
             fuelPct = 14;
             gForce = 0.02;
-            hqCallout = emitOnce(
-              'LEO_DEPLOY',
-              'GUIDANCE: 400 km Sun-Synchronous Orbit stabilized! Fairing jettisoned — deploying Weather Satellite!'
-            );
+            if (flightT >= 99.0) hqCallout = emitOnce('LEO_CIRC', 'GUIDANCE: Circularization burn complete! 400 km Polar Sun-Synchronous Orbit locked.');
+            if (flightT >= 107.0) hqCallout = emitOnce('LEO_UNFOLD', 'FLIGHT DIRECTOR: Releasing payload clamps. Weather Satellite solar panels unfolding!');
           } else {
             const isSuccess = validation.willLand;
             const finalStatus = isSuccess ? 'LANDED' : 'CRASHED';
@@ -541,7 +609,7 @@ export function createLocalPhysicsStream({
               gForce: 0.0,
               phase: isSuccess ? 'ORBIT_CONFIRMED' : 'PAYLOAD_ERROR',
               hqCallout: isSuccess
-                ? 'FLIGHT DIRECTOR: ORBIT CONFIRMED! Weather Satellite solar arrays deployed & radar online!'
+                ? 'FLIGHT DIRECTOR: MISSION ACCOMPLISHED! NOAA Weather Satellite active in 400 km SSO orbit! Telemetry nominal!'
                 : `GUIDANCE: MISSION FAILED IN ORBIT! ${validation.failureReason}`,
               status: finalStatus,
               stageSeparated: true,
@@ -551,87 +619,126 @@ export function createLocalPhysicsStream({
             finishMission(finalStatus, finalTick);
             return;
           }
-        } else if (flightT < 20.5) {
-          // Entry / Approach (flightT 15.5 -> 20.5)
+        }
+        // Phase 6B: Moon / Mars Interplanetary Entry, Descent & Landing (98 -> 122s)
+        else {
           stageSeparated = true;
-          const p = (flightT - 15.5) / 5.0;
-          phase = 'ENTRY_DESCENT';
-          const peakAlt = isEarthLeo ? targetAltKm : 240;
+          // EDL Entry & Hypersonic Braking (98 -> 112s)
+          if (flightT < 112.0) {
+            const p = (flightT - 98.0) / 14.0;
+            phase = 'ENTRY_DESCENT';
 
-          if (failureCode === 'NO_HEATSHIELD' && p >= 0.65) {
-            const crashTick = {
+            // Mars No Heatshield Failure
+            if (failureCode === 'NO_HEATSHIELD' && p >= 0.45) {
+              if (!explodingStartTime) explodingStartTime = simTime;
+              const explodeAge = simTime - explodingStartTime;
+              phase = 'EXPLODING';
+              status = 'CRASHED';
+              anomalyType = 'NO_HEATSHIELD';
+              altitudeKm = 42.0;
+              velocityMs = 5400;
+              fuelPct = 12;
+              gForce = 12.5;
+              hqCallout = emitOnce('HEAT_BOOM', 'THERMAL: CRITICAL! No heatshield equipped! Mach 25 atmospheric plasma incinerated the spacecraft!');
+
+              if (explodeAge >= 6.5) {
+                finishMission('CRASHED', {
+                  tSec: Number(flightT.toFixed(2)),
+                  countdownSec: 0,
+                  altitudeKm: 28.0,
+                  velocityMs: 4200,
+                  fuelPct: 8,
+                  gForce: 14.0,
+                  phase: 'THERMAL_BURNUP',
+                  hqCallout: 'THERMAL: Vehicle lost in entry plasma. Missing thermal protection shield.',
+                  status: 'CRASHED',
+                  stageSeparated: true,
+                  edlDeployed: false,
+                  anomalyType: 'NO_HEATSHIELD',
+                });
+                return;
+              }
+            }
+
+            edlDeployed = p >= 0.6;
+            altitudeKm = Math.max(8.0, 180.0 * (1 - p * 0.95));
+            velocityMs = Math.max(340, 7600 * (1 - p * 0.94));
+            fuelPct = Math.max(8, 14 - p * 6);
+            gForce = 2.8 + Math.sin(p * Math.PI) * 2.2;
+            if (flightT >= 99.0) hqCallout = emitOnce('MARS_ENTRY', 'EDL OFFICER: Atmospheric entry interface reached! Hypersonic plasma envelope holding.');
+            if (flightT >= 106.0) hqCallout = emitOnce('CHUTE_DEP', 'GUIDANCE: Supersonic parachute mortar fired! Decelerating through Mach 1.8.');
+          }
+          // Terminal Powered Descent & Landing Touchdown (112 -> 122s)
+          else if (flightT < 122.0) {
+            edlDeployed = true;
+            const p = (flightT - 112.0) / 10.0;
+            phase = 'TERMINAL_DESCENT';
+            altitudeKm = Math.max(0, 8.0 * (1 - p));
+
+            // EDL Brake Failure check (e.g. parachutes on Moon vacuum)
+            if (failureCode === 'EDL_FAIL') {
+              velocityMs = Math.max(160, 340 - p * 60);
+              gForce = 1.4;
+              if (flightT >= 113.0) hqCallout = emitOnce('EDL_FAIL_WARN', 'EDL OFFICER: CRITICAL! Parachutes provide zero lift in vacuum! Altitude dropping too fast!');
+              if (flightT >= 120.0) {
+                if (!explodingStartTime) explodingStartTime = simTime;
+                const explodeAge = simTime - explodingStartTime;
+                phase = 'EXPLODING';
+                status = 'CRASHED';
+                anomalyType = 'EDL_FAIL';
+                altitudeKm = 0;
+                velocityMs = 240;
+                fuelPct = 0;
+                gForce = 18.0;
+                hqCallout = emitOnce('IMPACT_BOOM', 'EDL OFFICER: CATASTROPHIC SURFACE IMPACT! Spacecraft slammed into crater at 240 m/s!');
+
+                if (explodeAge >= 6.5) {
+                  finishMission('CRASHED', {
+                    tSec: Number(flightT.toFixed(2)),
+                    countdownSec: 0,
+                    altitudeKm: 0,
+                    velocityMs: 240,
+                    fuelPct: 0,
+                    gForce: 18.0,
+                    phase: 'HARD_IMPACT',
+                    hqCallout: `EDL OFFICER: Spacecraft destroyed on impact. ${validation.failureReason}`,
+                    status: 'CRASHED',
+                    stageSeparated: true,
+                    edlDeployed: true,
+                    anomalyType: 'EDL_FAIL',
+                  });
+                  return;
+                }
+              }
+            } else {
+              const targetSpeed = validation.physics?.touchdown?.speedMs ?? 2.2;
+              velocityMs = Math.max(targetSpeed, 340 * (1 - p * 0.99));
+              fuelPct = Math.max(2, 8 - p * 6);
+              gForce = 1.15;
+              if (flightT >= 113.0) hqCallout = emitOnce('RETRO_FIRE', 'EDL OFFICER: Skycrane retro-thrusters fired! Descent rate slowing: 50 meters, 20 meters...');
+              if (flightT >= 119.0) hqCallout = emitOnce('TOUCHDOWN_ALERT', 'GUIDANCE: Radar altimeter locked: 10 meters... 5 meters... 2 meters... Contact light!');
+            }
+          } else {
+            // Full successful surface touchdown!
+            const finalStatus = validation.willLand ? 'LANDED' : 'CRASHED';
+            const finalSpeed = validation.willLand ? (validation.physics?.touchdown?.speedMs ?? 2.2) : 240;
+            const finalTick = {
               tSec: Number(flightT.toFixed(2)),
               countdownSec: 0,
-              altitudeKm: Number((peakAlt * 0.22).toFixed(1)),
-              velocityMs: 5800,
-              fuelPct: 16,
-              gForce: 11.2,
-              phase: 'THERMAL_BURNUP',
-              hqCallout: 'THERMAL: CRITICAL — No ablative heatshield! Vehicle disintegrated in entry plasma!',
-              status: 'CRASHED',
+              altitudeKm: 0,
+              velocityMs: Number(finalSpeed.toFixed(1)),
+              fuelPct: 2,
+              gForce: 1.0,
+              phase: 'TOUCHDOWN',
+              hqCallout: 'FLIGHT DIRECTOR: TOUCHDOWN CONFIRMED! Spacecraft is safe and upright on the surface! Welcome to the new world!',
+              status: finalStatus,
               stageSeparated: true,
-              edlDeployed: false,
-              anomalyType: 'NO_HEATSHIELD',
+              edlDeployed: true,
+              anomalyType: null,
             };
-            finishMission('CRASHED', crashTick);
+            finishMission(finalStatus, finalTick);
             return;
           }
-
-          edlDeployed = p >= 0.55;
-          altitudeKm = Math.max(12, peakAlt * (1 - p * 0.92));
-          velocityMs = Math.max(280, 7800 * (1 - p * 0.94));
-          fuelPct = Math.max(6, 16 - p * 10);
-          gForce = 2.6 + Math.sin(p * Math.PI) * 2.1;
-          if (flightT >= 15.8) {
-            hqCallout = emitOnce(
-              'EDL_INIT',
-              failureCode === 'NO_HEATSHIELD'
-                ? 'THERMAL: WARNING — Entry interface plasma spike! Heatshield missing!'
-                : 'EDL OFFICER: Retro-burn initiated. Atmospheric / target approach nominal.'
-            );
-          }
-        } else if (flightT < 24.5) {
-          // Terminal Descent & Touchdown (flightT 20.5 -> 24.5)
-          stageSeparated = true;
-          edlDeployed = true;
-          const p = (flightT - 20.5) / 4.0;
-          phase = 'TERMINAL_DESCENT';
-          altitudeKm = Math.max(0, 12 * (1 - p));
-          const targetSpeed = validation.physics?.touchdown?.speedMs ?? 2.5;
-          velocityMs = failureCode === 'EDL_FAIL' ? Math.max(180, 280 - p * 80) : Math.max(targetSpeed, 280 * (1 - p * 0.99));
-          fuelPct = Math.max(1, 6 - p * 5);
-          gForce = failureCode === 'EDL_FAIL' ? 1.6 : 1.15;
-          if (flightT >= 20.7) {
-            hqCallout = emitOnce(
-              'TERM',
-              failureCode === 'EDL_FAIL'
-                ? 'EDL OFFICER: CRITICAL — Deceleration failure! Surface impact imminent!'
-                : 'EDL OFFICER: Landing legs deployed. Final retro-thruster burn nominal.'
-            );
-          }
-        } else {
-          // Final outcome at flightT >= 24.5
-          const finalStatus = validation.willLand ? 'LANDED' : 'CRASHED';
-          const finalSpeed = validation.willLand ? (validation.physics?.touchdown?.speedMs ?? 2.2) : 240;
-          const finalTick = {
-            tSec: Number(flightT.toFixed(2)),
-            countdownSec: 0,
-            altitudeKm: 0,
-            velocityMs: Number(finalSpeed.toFixed(1)),
-            fuelPct: 1,
-            gForce: finalStatus === 'LANDED' ? 1.0 : 14.5,
-            phase: finalStatus === 'LANDED' ? 'TOUCHDOWN' : 'HARD_IMPACT',
-            hqCallout:
-              finalStatus === 'LANDED'
-                ? 'FLIGHT DIRECTOR: TOUCHDOWN CONFIRMED! All stations report vehicle safe on surface!'
-                : `EDL OFFICER: IMPACT DETECTED! ${validation.failureReason}`,
-            status: finalStatus,
-            stageSeparated: true,
-            edlDeployed: true,
-            anomalyType: finalStatus === 'CRASHED' ? (failureCode || 'EDL_FAIL') : null,
-          };
-          finishMission(finalStatus, finalTick);
-          return;
         }
       }
     }
