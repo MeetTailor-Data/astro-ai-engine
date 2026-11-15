@@ -59,12 +59,13 @@ function OrbitalSuccessScene() {
     <group>
       <color attach="background" args={['#020409']} />
       <Stars radius={90} depth={50} count={4500} factor={4.0} saturation={0.35} fade speed={0.4} />
-      <ambientLight intensity={0.55} color="#BAE6FD" />
-      <directionalLight position={[14, 10, 12]} intensity={2.8} color="#FFFBEB" />
+      <ambientLight intensity={1.1} color="#ffffff" />
+      <directionalLight position={[0, 14, 16]} intensity={3.5} color="#ffffff" />
+      <directionalLight position={[14, 10, 12]} intensity={2.2} color="#fffbeb" />
 
       {/* Sunlit Rotating 3D Photorealistic Earth Below */}
       <group position={[0, -14.5, -2]}>
-        <mesh ref={earthRef}>
+        <mesh ref={earthRef} rotation={[0.3, -Math.PI * 0.45, 0]}>
           <sphereGeometry args={[12.5, 64, 64]} />
           <meshStandardMaterial map={earthTex} roughness={0.55} metalness={0.08} />
         </mesh>

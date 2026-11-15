@@ -660,10 +660,13 @@ export default function SolarSystemScene({ activePlanetKey, onSelectPlanet }) {
 
   return (
     <group>
-      {/* Solar Key Light + Rim Fill */}
-      <ambientLight intensity={0.35} color="#cbd5e1" />
-      <directionalLight position={[-25, 110, 15]} intensity={3.2} color="#fff7ed" />
-      <pointLight position={[0, 96, -12]} intensity={35} distance={75} color="#bae6fd" />
+      {/* High-Key Solar Illumination + Front Planet Fill */}
+      <ambientLight intensity={1.15} color="#ffffff" />
+      <directionalLight position={[0, 92, 18]} intensity={3.6} color="#ffffff" />
+      <directionalLight position={[-30, 115, 20]} intensity={2.6} color="#fffbeb" />
+      {/* Targeted Planetary Sunlight */}
+      <pointLight position={[-11.5, 92, -14]} intensity={45} distance={55} color="#e0f2fe" />
+      <pointLight position={[12, 90, -14]} intensity={35} distance={55} color="#fed7aa" />
 
       {/* EARTH (LEO) */}
       <group
@@ -673,28 +676,27 @@ export default function SolarSystemScene({ activePlanetKey, onSelectPlanet }) {
           onSelectPlanet?.('earth');
         }}
       >
-        <mesh ref={earthRef}>
+        <mesh ref={earthRef} rotation={[0.25, -Math.PI * 0.42, 0]}>
           <sphereGeometry args={[3.2, 64, 48]} />
           <meshStandardMaterial
             map={textures.earth}
-            roughnessMap={textures.specular}
-            roughness={0.45}
-            metalness={0.1}
+            roughness={0.52}
+            metalness={0.06}
           />
         </mesh>
         {/* Subtle, Translucent Rotating Cloud Layer */}
-        <mesh ref={earthCloudsRef}>
-          <sphereGeometry args={[3.25, 56, 40]} />
+        <mesh ref={earthCloudsRef} rotation={[0.2, -Math.PI * 0.38, 0]}>
+          <sphereGeometry args={[3.24, 56, 40]} />
           <meshStandardMaterial
             map={textures.earthClouds}
             transparent
-            opacity={0.35}
+            opacity={0.3}
             depthWrite={false}
           />
         </mesh>
         {/* Atmospheric Fresnel Glow */}
         <mesh material={shaders.earth}>
-          <sphereGeometry args={[3.38, 56, 40]} />
+          <sphereGeometry args={[3.36, 56, 40]} />
         </mesh>
         {/* LEO Orbital Ring */}
         <mesh rotation={[Math.PI * 0.42, 0.25, 0]}>
